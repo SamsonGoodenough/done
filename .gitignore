@@ -1,0 +1,6 @@
+/.env
+/.env.production
+
+# node_modules is also ignored inside frontend/.gitignore, but keep this
+# here too in case anything is ever bootstrapped at the repo root.
+/node_modules
