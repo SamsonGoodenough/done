@@ -1,0 +1,33 @@
+# Picked up automatically alongside compose.yml for local development.
+# Adds bind-mounted source for hot reload, the Vite dev server, and
+# Mailhog for catching invite emails instead of sending real mail.
+
+services:
+  php-fpm:
+    volumes:
+      - ./backend:/var/www/html
+      - avatars:/var/www/html/storage/app/public/avatars
+
+  queue-worker:
+    volumes:
+      - ./backend:/var/www/html
+      - avatars:/var/www/html/storage/app/public/avatars
+
+  nginx:
+    depends_on:
+      - php-fpm
+      - frontend
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend/Dockerfile
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "${FRONTEND_PORT}:5173"
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "${MAILHOG_WEB_PORT}:8025"

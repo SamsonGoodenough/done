@@ -1,0 +1,18 @@
+FROM node:24-alpine AS build
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --legacy-peer-deps
+
+COPY . .
+RUN npm run build
+
+# Final stage just holds the built static assets. It copies them into a
+# shared volume on startup so the nginx service can serve them without
+# needing Node in its own image. See compose.prod.yml.
+FROM alpine:latest
+
+COPY --from=build /app/dist /dist
+
+CMD ["sh", "-c", "cp -r /dist/. /shared/ && echo 'frontend assets copied to shared volume'"]

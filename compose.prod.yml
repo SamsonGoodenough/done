@@ -1,0 +1,42 @@
+# Production overrides. Not picked up automatically: run with
+#   docker compose -f compose.yml -f compose.prod.yml up -d
+# Swaps in the .prod Dockerfiles, builds the frontend once into a shared
+# volume nginx serves from, and turns off debug mode.
+
+services:
+  php-fpm:
+    build:
+      context: ./backend
+      dockerfile: ../docker/backend/Dockerfile.prod
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+
+  queue-worker:
+    build:
+      context: ./backend
+      dockerfile: ../docker/backend/Dockerfile.prod
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+
+  frontend-build:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend/Dockerfile.prod
+    volumes:
+      - frontend_dist:/shared
+    restart: "no"
+
+  nginx:
+    volumes:
+      - ./docker/nginx/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - frontend_dist:/usr/share/nginx/html:ro
+    depends_on:
+      php-fpm:
+        condition: service_started
+      frontend-build:
+        condition: service_completed_successfully
+
+volumes:
+  frontend_dist:

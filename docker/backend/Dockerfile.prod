@@ -1,0 +1,47 @@
+FROM php:8.5-fpm-alpine AS base
+
+RUN apk add --no-cache \
+        postgresql-dev \
+        libzip-dev \
+        libpng-dev \
+        freetype-dev \
+        libjpeg-turbo-dev \
+        oniguruma-dev \
+        icu-dev \
+        $PHPIZE_DEPS \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j"$(nproc)" \
+        pdo_pgsql \
+        pgsql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        zip \
+        intl \
+    && apk del $PHPIZE_DEPS
+
+FROM base AS vendor
+
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-interaction --no-progress --no-scripts --prefer-dist
+
+COPY . .
+RUN composer dump-autoload --optimize
+
+FROM base AS runtime
+
+WORKDIR /var/www/html
+
+COPY --from=vendor /var/www/html .
+
+RUN chown -R www-data:www-data storage bootstrap/cache
+
+EXPOSE 9000
+
+CMD ["php-fpm"]
