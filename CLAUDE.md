@@ -57,6 +57,7 @@ This has been built and smoke-tested for the dev path only so far; the prod path
 - **Run commands inside containers.** Once the Docker Compose stack exists, use `docker compose exec <service> <command>` for anything that executes application code: composer, artisan, npm, vite, test runners, migrations, and so on. Do not run these directly on the host. The only things that should run on the host are read-only file search and inspection (grep, find, ls, reading files) since those don't need a container.
 - **Avoid AI-typical text patterns.** Do not use em dashes. Write commit messages, comments, and docs plainly, the way a person on this project would write them.
 - **Never co-author commits.** Do not add a Co-Authored-By trailer or a Claude session link to any commit in this repo. Commits should read as written entirely by the user, with no attribution to Claude.
+- **Branch naming.** New feature work happens on a branch named `feature/<short-description>`, not directly on `main`. Fixes for a tracked GitHub issue happen on `issue/<short-description>` (including the issue number is fine, e.g. `issue/42-login-redirect-loop`). Planning-doc-only changes with no code are the exception and can still go straight to `main`.
 
 ## What "Done" is
 
@@ -90,7 +91,7 @@ Stack (see `02-tech-stack.md` for full reasoning): Vue 3 + Vuetify 3 + Sass + Vi
 Key structural decisions worth knowing before touching the data model (`04-data-model.md` has full detail):
 - **`user_media` vs `log_entries` is the core split.** `user_media` is a user's current shelf status for an item (planned/in progress/completed/dropped/on-hold, favourite). `log_entries` is the diary: one row per watch/play/read event, so a rewatch is just another row, not a field update. Don't collapse these back into one table.
 - **`media_items` is a shared catalog** across all users, deduplicated by `(source, external_id)`, with a `metadata` JSONB column for the per-type fields (TV seasons/episodes, game platforms, book authors) rather than one table per media type.
-- **Episode progress is separate from the diary.** `user_episode_progress` is lightweight watched/unwatched checkmarks, not a `log_entries` row per episode.
+- **No separate episode-progress table.** TV shows log at whole-show, season, or single-episode granularity through `log_entries` itself (`episode_id` / `season_number`, both nullable), with rating/review optional at every level. A log entry with no rating is what marks an episode watched; there's no separate watched-checkbox table.
 - **Roles (Admin/Manager/Member) are not the same thing as friends/visibility.** Comments, reactions, Tag Friends, and profile visibility apply equally regardless of role; only catalog-editing, invites, and moderation are role-gated.
 - **Theming.** Colors must live in exactly one canonical file (see the "Theming architecture" section of `02-tech-stack.md`) that feeds both Vuetify's theme config and custom components. Never hardcode a hex value or duplicate a color in a second Sass variable file.
 
