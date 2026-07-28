@@ -21,7 +21,7 @@ Index of the planning documents for **Done**, an invite-only, self-hosted tracke
 - **Data model:** private-per-user library with social visibility (not one shared collective list).
 - **Media types (v1):** Movies, TV Shows, Games, Books.
 - **Logging model:** diary-style — every watch/play/read is its own dated log entry, so rewatches/replays/rereads are just additional entries on the same item.
-- **Episode progress:** TV shows get per-episode "watched" checkmarks (synced from TMDB), separate from the diary/rating system.
+- **Episode progress:** no separate watched-checkbox system. TV shows are logged the same way as any other item, just optionally scoped to a season or a single episode (`log_entries.episode_id` / `season_number`) — rating/review stay optional at every level. Season/episode metadata is still synced from TMDB to populate the picker. See [03-features.md](03-features.md) and [04-data-model.md](04-data-model.md).
 - **Tag Friends:** any log entry can tag other members who shared the experience — label adapts per type ("Watched with" / "Played with" / "Read with"), avatar row + "+" picker, members-only, no free-text guests.
 - **Friends & visibility:** real friend request/accept graph. Profiles are public by default (viewable by any member) or private (content gated to accepted friends; still discoverable via search). Activity feed shows friends' reviews, falling back to your own if you have no friends yet.
 - **Comments & reactions:** threaded (Reddit-style) comments on reviews, plus a fixed small set of emoji reactions on reviews.

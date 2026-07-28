@@ -13,7 +13,7 @@ users >──< log_entries  (via log_entry_participants, Tag Friends)
 users >──< users        (via friendships, request/accept)
 media_items (type = movie | tv_show | game | book)
 media_items ──< episodes                (tv_show only)
-users >──< episodes     (via user_episode_progress, "watched" checkmarks)
+log_entries >── episodes  (optional — an episode-level log entry references one; a season-level entry just stores a season_number)
 log_entries ──< comments (self-referencing parent_comment_id, threaded)
 log_entries ──< reactions >── users
 users ──< notifications
@@ -103,14 +103,18 @@ The diary. One row per watch/play/read event.
 |---|---|
 | id | PK |
 | user_media_id | FK → user_media.id |
+| episode_id | nullable, FK → episodes.id — set when this entry logs a single episode (tv_show only) |
+| season_number | nullable, int — set when this entry logs an entire season as one unit (tv_show only); null whenever `episode_id` is set, or when logging the whole item |
 | logged_date | the date the user finished it (or logged it) |
 | rating | decimal, nullable, 0.0–5.0 in 0.5 steps |
 | review | text, nullable |
 | contains_spoilers | boolean, default false |
-| is_rewatch | boolean — true if a prior `completed`-resulting log entry already exists for this `user_media_id` |
+| is_rewatch | boolean — true if a prior `completed`-resulting log entry already exists for the same target (same `episode_id`, or same `season_number`, or the whole item when both are null) |
 | created_at / updated_at | |
 
 **Why `rating` isn't just an integer 0–10:** storing it as a decimal (`0.0`–`5.0`, step `0.5`) keeps the display logic (star components) and the stored value in the same unit, rather than storing "half-stars as an int 0-10" and converting everywhere. Validated at the application layer to only allow 0.5 steps.
+
+**Logging granularity for TV shows:** a `log_entries` row can target the whole show (`episode_id` and `season_number` both null — same as movies/games/books), a single season (`season_number` set, `episode_id` null), or a single episode (`episode_id` set). All three share the exact same fields, and rating/review stay optional at every level — logging an episode with no rating is how a user notes "I watched this" without a separate progress-tracking table. The application layer enforces that `episode_id` and `season_number` aren't both set on the same row, and that a set `episode_id` actually belongs to the show being logged (via `media_item_id` on `user_media`).
 
 ## `log_entry_participants`
 
@@ -152,18 +156,6 @@ TV-show-only. Synced from TMDB when a show is added to the catalog.
 | title | nullable |
 | air_date | nullable |
 | created_at / updated_at | |
-
-## `user_episode_progress`
-
-Lightweight per-user "watched" checkmarks, separate from the diary — see [03-features.md](03-features.md) for why episode watches don't create their own `log_entries`.
-
-| Column | Notes |
-|---|---|
-| user_id | FK → users.id |
-| episode_id | FK → episodes.id |
-| watched_at | timestamp |
-
-Composite PK on `(user_id, episode_id)`. "Watched 14 of 62" and "watched up to" display logic is a simple count/max query against this table per show, no separate progress-summary column to keep in sync.
 
 ## `comments`
 
@@ -216,7 +208,7 @@ This is the main structural decision in the schema, driven directly by the "diar
 
 - `user_media` answers "where does this stand for this user *right now*" (planned/in progress/completed/dropped, favourite or not) — one row, cheap to query for shelf views.
 - `log_entries` answers "what's the full history of me finishing this" — potentially many rows, each with its own date/rating/review, which is exactly what diary-style rewatch tracking requires.
-- Backlog items (`status = planned`) simply have zero `log_entries`. Moving to `completed` and creating the first `log_entries` row happen together in one action from the UI, but they're modeled separately so a `dropped` or `on_hold` item can still have log entries (e.g. dropped a TV show after loving season 1 — that's a real completed-and-rated log entry for "season 1" conceptually, though see open questions on partial-completion granularity).
+- Backlog items (`status = planned`) simply have zero `log_entries`. Moving to `completed` and creating the first `log_entries` row happen together in one action from the UI, but they're modeled separately so a `dropped` or `on_hold` item can still have log entries — e.g. dropping a TV show after loving season 1 is a real log entry with `season_number = 1`, its own rating and review, independent of the show's overall shelf status.
 
 ## Roles & permissions tables
 

@@ -30,12 +30,12 @@ Docs in this folder. Output: agreed feature scope, data model, tech choices.
 - Add to shelf (with status), change status, log a completion (with date/rating/review/spoiler/favourite/rewatch/tagged members)
 - Shelf views by status; item detail page showing all log entries for that item
 
-## Phase 4 — Episode-level progress (TV)
+## Phase 4 — Episode & season logging (TV)
 
 - `episodes` migration, synced from TMDB per show
-- `user_episode_progress` migration and model; mark-episode-watched endpoint
-- "Watched X of Y" / "watched up to" query logic per show
-- Prompt-to-log-as-completed flow when all episodes are marked watched
+- Extend the `log_entries` migration/model with nullable `episode_id` (FK → episodes) and `season_number` columns, so an entry can target the whole show, one season, or one episode
+- Application-layer validation: `episode_id` and `season_number` aren't both set on the same entry, and a set `episode_id` actually belongs to the show being logged
+- Rewatch detection (`is_rewatch`) scoped per target, not just per show — a rewatch check for one episode only looks at prior entries for that same episode
 
 ## Phase 5 — Friends & profile visibility
 
@@ -63,7 +63,7 @@ Docs in this folder. Output: agreed feature scope, data model, tech choices.
 - Auth screens (login, accept-invite)
 - Search & add flow, shelf views, log-entry creation/edit with half-star rating control
 - Tag Friends control on the log-entry form (avatar row + add-friend picker, label adapts per media type)
-- Item detail page with diary history and episode progress checklist (TV)
+- Item detail page with diary history across whole-show, season, and episode entries (TV)
 
 ## Phase 9 — Frontend: social
 

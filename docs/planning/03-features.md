@@ -27,15 +27,14 @@ Every item on a user's shelf has a status, independent of any diary entries:
 
 Status is set/changed manually by the user (moving something from Planned → In progress → Completed is a normal flow, but the app doesn't force that order — e.g. logging a completed movie you saw last week creates the shelf entry as Completed directly).
 
-## Episode-level progress (TV Shows)
+## Episode & season logging (TV Shows)
 
-TV shows get real episode tracking rather than just a whole-show status:
+TV shows can be logged at three levels of granularity, not just whole-show:
 
-- Season/episode data (numbers, titles, air dates) is pulled from TMDB when a show is added to the catalog, stored locally (see [04-data-model.md](04-data-model.md) `episodes` table).
-- Each user can mark individual episodes as watched from the show's page — a lightweight checkbox/tap action, not a full log entry (no per-episode rating/review; that stays at the show level via the diary).
-- The show's page displays progress as "Watched 14 of 62" (or per-season breakdowns), and a "watched up to" pointer for quickly resuming where you left off.
-- Marking every episode of a show watched is a sensible trigger to prompt the user to log the show as Completed (with a rating/review) on their diary/shelf — but it's a prompt, not an automatic status change; see [10-open-questions.md](10-open-questions.md) for whether this should instead be fully automatic.
-- Movies, games, and books don't get sub-item progress tracking in v1 — episode tracking is TV-specific.
+- Season/episode data (numbers, titles, air dates) is pulled from TMDB when a show is added to the catalog and stored locally (see [04-data-model.md](04-data-model.md) `episodes` table) — this is what populates the season/episode picker when creating a log entry.
+- A log entry can target the **whole show**, a **single season**, or a **single episode** — same fields either way (date, rating, review, spoiler flag, favourite, Tag Friends, rewatch). Rating and review are optional at every level, so logging an episode with no rating is how a user notes "I watched this" without a separate progress-tracking system.
+- There's no whole-show completion checklist or "watched X of Y" progress bar in v1 — a show's page just shows its diary history (whole-show, season, and episode entries together, most recent first), and moving the shelf status to Completed stays a manual action independent of how many episodes or seasons have been individually logged.
+- Movies, games, and books don't get this sub-item logging — season/episode granularity is TV-specific.
 
 ## Diary-style logging
 
