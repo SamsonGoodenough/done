@@ -19,6 +19,18 @@ log_entries ──< reactions >── users
 users ──< notifications
 ```
 
+## Timestamps & soft deletes (default convention)
+
+Every table below gets `created_at`/`updated_at` and a nullable `deleted_at` (Eloquent's `SoftDeletes`) unless its own section says otherwise. Soft-deleting is the default over hard-deleting anywhere a row might be referenced by other rows that should survive it (a log entry pointing at a soft-deleted episode, comments under a soft-deleted review, and so on) — the alternative is cascading deletes that quietly erase history, which cuts against the point of a diary/tracker people want to keep.
+
+Noted exceptions:
+
+- **`users`** — already has its own `deactivated_at` for this purpose (see below), deliberately *not* Eloquent `SoftDeletes`: a deactivated user's content has to keep showing up in normal queries (comments, tags, reviews), not get hidden the way `SoftDeletes` hides a row by default.
+- **`log_entry_participants`** — a plain many-to-many pivot with no model class; un-tagging someone is just a delete, there's no history worth keeping for a tag that no longer applies.
+- **`reactions`** — atomic by nature (you either reacted or you didn't); there's nothing to *update*, and soft-deleting would complicate the `(log_entry_id, user_id, emoji)` uniqueness for no real benefit — un-reacting is a hard delete, re-reacting inserts a fresh row.
+
+Where a soft-deletable table also has a uniqueness constraint (`media_items` on `(source, external_id)`, `friendships` on `(requester_id, addressee_id)`), the app layer should restore a matching soft-deleted row instead of inserting a duplicate; finalize as a filtered/partial unique index (`WHERE deleted_at IS NULL`) if the database should enforce that directly.
+
 ## `users`
 
 | Column | Notes |
@@ -45,7 +57,8 @@ Roles are managed via `spatie/laravel-permission`'s pivot tables (`model_has_rol
 | invited_by | FK → users.id |
 | expires_at | e.g. now + 7 days |
 | accepted_at | nullable — null until used |
-| created_at | |
+| created_at / updated_at | |
+| deleted_at | nullable — set when an invitation is revoked before being accepted |
 
 ## `media_items`
 
@@ -64,6 +77,7 @@ The shared catalog — one row per distinct movie/show/game/book, regardless of 
 | metadata | JSON — type-specific fields (see below) |
 | added_by | FK → users.id, nullable — set when `source = manual` |
 | created_at / updated_at | |
+| deleted_at | nullable — removed from the active catalog, but existing `user_media`/`log_entries`/`episodes` rows referencing it are preserved |
 
 **Why a `metadata` JSON column instead of one table per type:** four media types each need a handful of extra fields (TV needs season/episode counts and airing status; games need platforms; books need authors and page count). Four separate tables with polymorphic joins is more ceremony than this scale needs. A JSON column keeps `media_items` a single queryable table for cross-type views (the shelf, search, activity feed) while still holding type-specific data. This is a deliberate small-scale tradeoff — see [05-database-choice.md](05-database-choice.md) for how this interacts with the database choice (PostgreSQL's JSONB makes this comfortable to query if it's ever needed; it wouldn't be as pleasant in plain MySQL JSON or SQLite's JSON1).
 
@@ -92,6 +106,7 @@ The "shelf" — one row per user per media item, tracking their current relation
 | status | enum: `planned`, `in_progress`, `completed`, `dropped`, `on_hold` |
 | is_favourite | boolean, default false |
 | created_at / updated_at | |
+| deleted_at | nullable — removed from a user's shelf; `log_entries` underneath are preserved |
 
 Unique on `(user_id, media_item_id)` — a user has at most one shelf entry per item, but that item can have many `log_entries` underneath it (diary-style).
 
@@ -111,6 +126,7 @@ The diary. One row per watch/play/read event.
 | contains_spoilers | boolean, default false |
 | is_rewatch | boolean — true if a prior `completed`-resulting log entry already exists for the same target (same `episode_id`, or same `season_number`, or the whole item when both are null) |
 | created_at / updated_at | |
+| deleted_at | nullable — deleting a log entry/review is soft, so its comments/reactions/tags aren't orphaned |
 
 **Why `rating` isn't just an integer 0–10:** storing it as a decimal (`0.0`–`5.0`, step `0.5`) keeps the display logic (star components) and the stored value in the same unit, rather than storing "half-stars as an int 0-10" and converting everywhere. Validated at the application layer to only allow 0.5 steps.
 
@@ -139,7 +155,9 @@ Backs the friend request/accept flow and gates profile visibility.
 | addressee_id | FK → users.id |
 | status | enum: `pending`, `accepted`, `declined` |
 | created_at | when the request was sent |
+| updated_at | |
 | responded_at | nullable — when accepted/declined |
+| deleted_at | nullable — e.g. a future "unfriend" action, or clearing out a declined request |
 
 Kept directional (requester/addressee) rather than a symmetric pair of rows — simpler to reason about "who sent this," and a mutual friendship is just `status = accepted` read with an `OR` across both directions when checking "are these two users friends." Unique on `(requester_id, addressee_id)` to prevent duplicate pending requests; the application layer blocks sending a second request in the reverse direction while one is already pending (that should just accept the existing one).
 
@@ -156,6 +174,7 @@ TV-show-only. Synced from TMDB when a show is added to the catalog.
 | title | nullable |
 | air_date | nullable |
 | created_at / updated_at | |
+| deleted_at | nullable — preserves `log_entries.episode_id` references if a show's episode list is corrected after a metadata refresh |
 
 ## `comments`
 
@@ -198,7 +217,8 @@ Backs the in-app bell/badge.
 | type | enum: `tagged`, `friend_request`, `friend_accepted`, `comment_on_review`, `comment_reply`, `reaction` |
 | data | JSON — polymorphic reference to the relevant entity (e.g. `log_entry_id`, `comment_id`, `from_user_id`) plus whatever the notification UI needs to render without extra lookups |
 | read_at | nullable |
-| created_at | |
+| created_at / updated_at | |
+| deleted_at | nullable — lets a user clear a notification from their list without losing it server-side |
 
 `data` as JSON rather than a rigid set of nullable FK columns because the six notification types reference different combinations of entities — same reasoning as `media_items.metadata` in [05-database-choice.md](05-database-choice.md)'s JSONB discussion.
 

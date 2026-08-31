@@ -5,15 +5,16 @@ namespace App\Models;
 use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
-use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable(['email', 'token', 'role', 'invited_by', 'expires_at', 'accepted_at'])]
 #[Hidden(['token'])]
-#[WithoutTimestamps]
 class Invitation extends Model
 {
+    use SoftDeletes;
+
     /**
      * @return array<string, string>
      */

@@ -38,3 +38,4 @@ Index of the planning documents for **Done**, an invite-only, self-hosted tracke
 - **Roles:** Admin, Manager, Member. Managers can manually add media that isn't found in the external databases.
 - **Access:** invite-only. Admins/Managers send a tokenized email invite link — no public signup.
 - **Deployment:** self-hosted, single VPS, Docker Compose, small scale (friends/family, well under 50 users).
+- **Timestamps & soft deletes:** every table gets `created_at`/`updated_at` and soft deletes (`deleted_at`) by default. Exceptions: `users` (already has `deactivated_at` for the same purpose), the `log_entry_participants` pivot, and `reactions` (both plain create/delete, nothing to update or soft-delete). See [04-data-model.md](04-data-model.md).

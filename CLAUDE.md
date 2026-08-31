@@ -94,6 +94,7 @@ Key structural decisions worth knowing before touching the data model (`04-data-
 - **No separate episode-progress table.** TV shows log at whole-show, season, or single-episode granularity through `log_entries` itself (`episode_id` / `season_number`, both nullable), with rating/review optional at every level. A log entry with no rating is what marks an episode watched; there's no separate watched-checkbox table.
 - **Roles (Admin/Manager/Member) are not the same thing as friends/visibility.** Comments, reactions, Tag Friends, and profile visibility apply equally regardless of role; only catalog-editing, invites, and moderation are role-gated.
 - **Theming.** Colors must live in exactly one canonical file (see the "Theming architecture" section of `02-tech-stack.md`) that feeds both Vuetify's theme config and custom components. Never hardcode a hex value or duplicate a color in a second Sass variable file.
+- **Timestamps and soft deletes are the default on every model.** `created_at`/`updated_at` plus `deleted_at` (Eloquent `SoftDeletes`), unless `04-data-model.md` says otherwise. Current exceptions: `users` (has `deactivated_at` instead), the `log_entry_participants` pivot, and `reactions`.
 
 ## Continuing the planning docs
 

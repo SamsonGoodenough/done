@@ -19,7 +19,8 @@ return new class extends Migration
             $table->foreignId('invited_by')->constrained('users');
             $table->timestamp('expires_at');
             $table->timestamp('accepted_at')->nullable();
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 
