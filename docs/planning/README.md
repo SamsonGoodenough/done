@@ -12,7 +12,7 @@ Index of the planning documents for **Done**, an invite-only, self-hosted tracke
 | [06-roles-permissions.md](06-roles-permissions.md) | Admin / Manager / Member roles, permission matrix, invite flow |
 | [07-external-integrations.md](07-external-integrations.md) | TMDB, games API, books API — choices and caching strategy |
 | [08-architecture-deployment.md](08-architecture-deployment.md) | Docker Compose layout, nginx, auth mechanism, backups |
-| [09-roadmap.md](09-roadmap.md) | Phased build plan |
+| [09-roadmap.md](09-roadmap.md) | Phased build plan, with a per-phase status/checklist kept current by the `update-roadmap` skill. Browsable dashboard view at [`roadmap.html`](roadmap.html). |
 | [10-open-questions.md](10-open-questions.md) | Decisions still open, assumptions made so far |
 | [11-design-system.md](11-design-system.md) | Chosen visual style ("Stub & Stamp" → "Passport & Postmark"): colors, type, layout motifs, iconography, nav structure. Live reference mockup at [`mockups/passport-and-postmark.html`](mockups/passport-and-postmark.html). |
 

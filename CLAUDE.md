@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository status
 
-The Docker Compose dev environment is scaffolded: a bare Laravel app in `backend/`, a bare Vue app in `frontend/`, and nginx/php-fpm/postgres/queue-worker/mailhog containers wired together. No feature code has been written yet (no custom migrations, models, routes, auth, or components beyond framework defaults). Follow the phase order in `docs/planning/09-roadmap.md` for what to build next (Phase 1: auth foundation).
+The Docker Compose dev environment is scaffolded: a bare Laravel app in `backend/`, a bare Vue app in `frontend/`, and nginx/php-fpm/postgres/queue-worker/mailhog containers wired together. Phase 1 backend work (extended `User` model, `Invitation` model/migration, `spatie/laravel-permission` installed) is in progress on `feature/phase1-user-invitation-models`, not yet merged. See `docs/planning/roadmap.html` (generated from `09-roadmap.md`) for the current phase-by-phase status — keep it current with the `update-roadmap` skill rather than hand-editing the status by feel.
 
 ### Running the stack
 
@@ -76,7 +76,7 @@ An invite-only, self-hosted tracker for movies, TV shows, games, and books for a
 | `06-roles-permissions.md` | Admin/Manager/Member matrix + invite flow |
 | `07-external-integrations.md` | TMDB, RAWG, Open Library: sync/caching strategy |
 | `08-architecture-deployment.md` | Docker Compose service layout, nginx, Sanctum auth, backups |
-| `09-roadmap.md` | The 12-phase build order, backend first, frontend from Phase 8 |
+| `09-roadmap.md` | The 12-phase build order, backend first, frontend from Phase 8. Per-phase status/checklist kept current by the `update-roadmap` skill; browsable at `roadmap.html`. |
 | `10-open-questions.md` | Open items and assumptions that still need confirming |
 | `11-design-system.md` | The chosen visual language ("Passport & Postmark") |
 
