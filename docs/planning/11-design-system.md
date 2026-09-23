@@ -1,85 +1,127 @@
-# Design System — "Stub & Stamp"
+# Design System — "Stub & Stamp, Cinematic Cut"
 
-Chosen visual direction after reviewing three mocked-up options (ticket-stub archive, cinema marquee/arcade, naturalist field log). This doc records the design language so it survives past the mockup — colors, type, layout motifs, iconography, and the resulting nav decision — for translation into the real Vuetify build in [02-tech-stack.md](02-tech-stack.md).
+Chosen visual direction after reviewing three mocked-up options (ticket-stub archive, cinema marquee/arcade, naturalist field log), refined once into the "Passport & Postmark" execution (light kraft-paper surfaces, monospace-only type, a favourite heart-chain stamp, an "All Activity" / "My Activity" carousel structure), then revisited a second time in a newer prototype that fuses the original **Stub & Stamp** ink-stamp motifs with a **grainy, cinematic, large-serif** direction — big film-grain hero art, a serif display face, clean paper-toned reading sections for review/comment text. That second pass, "Cinematic Cut," is the current chosen direction and is what's documented below. Passport & Postmark's mockup has been retired in favour of it; anything from that era that Cinematic Cut doesn't explicitly revisit is called out under [Carried over, not yet re-validated](#carried-over-not-yet-re-validated-in-cinematic-cut) below rather than assumed still correct.
 
-Of three follow-up personality variations on this base style (Pegboard & Pin, Card Catalog, Passport & Postmark), **Passport & Postmark won** and is the one carried forward below and into the reference mockup.
+This doc records the design language so it survives past the mockup — colors, type, layout motifs, iconography, and the nav decision — for translation into the real Vuetify build in [02-tech-stack.md](02-tech-stack.md).
 
 ## Reference mockup
 
-The living, up-to-date HTML mockup is saved at [`mockups/passport-and-postmark.html`](mockups/passport-and-postmark.html) — open it directly in a browser. It's the single source of truth for the visual details below (colors are live-adjustable via the pickers at the top of the page); treat this doc's prose as a summary of what's in that file, not a replacement for it. It covers: postmark-style ratings, the favourite background stamp (a heart-chain postmark clipped into a card's top-right corner), the "All Activity" / "My Activity" page structure, and the swipeable desktop/mobile carousels.
+Unlike Passport & Postmark (a single self-contained, editable HTML page), Cinematic Cut exists as a design canvas prototype with no single interactive file to open. What's saved in this repo instead:
+
+- [`mockups/design-tokens.css`](mockups/design-tokens.css) — the actual CSS custom properties and motif classes (`.grain`, `.stamp-postmark`, `.tear`, `.status-tag`), ready to import as-is.
+- [`mockups/screens/`](mockups/screens) — full-page PNG exports of all six artboards (Shelf, Detail, Activity, each mobile 390×844 and desktop 1440×900), for visual reference without needing the original canvas tool.
+
+The live canvas itself (editable, if the tool is available): https://claude.ai/artifact/FpLknz2FhJVfHRu4WoEmfj. There's also a separate, tangential prototype that restyled the `04-data-model.md` documentation page itself (not the app) in a related but distinct palette: https://claude.ai/artifact/VRTJn63LJkayxydjvG48Yr — lower priority, not incorporated into this doc, noted here only so the link isn't lost.
+
+Sample content on the artboards uses placeholder titles (*Dune: Part Two*, *Severance*, *Baldur's Gate 3*, *Project Hail Mary*, *The Bear*, *Oppenheimer*, *Hades*, *Klara and the Sun*) and placeholder friend names (Jules, Priya, Theo) — none of it is real data.
 
 ## Concept
 
-A ticket-booklet reading of your library: a completed item is a torn stub you keep, not just a list row. Ratings, spoiler warnings, and completion status get an ink-stamp treatment (rotated corner stamps, dashed "tear" lines, monospace ticket-printer type). Built for a small circle who already know each other's taste and just want the receipts — plain, a little nostalgic, not trying to be a social network.
+A ticket-booklet reading of your library: a completed item is a torn stub you keep, not just a list row. Ratings, spoiler warnings, and completion status get an ink-stamp treatment (rotated corner stamps, postmark rings, dashed "tear" lines, monospace ticket-printer labels). Cinematic Cut renders that concept against near-black, film-grain hero and poster art — big, cinematic visuals — carrying the ink-stamp details in the original oxblood/mustard palette, alternating with clean cream paper sections for the actual reading (reviews, comments) so long-form text doesn't fight the grain. Built for a small circle who already know each other's taste and just want the receipts — plain, a little nostalgic, not trying to be a social network.
 
 ## Color
 
-Two independent knobs, both user-adjustable at build time via Vuetify theme tokens (not hardcoded) so future re-tuning doesn't mean re-deriving these:
+| Token | Hex | Used for |
+|---|---|---|
+| `--bg` | `#120E0A` | Dark/cinematic surface — hero art, poster grids, nav |
+| `--bg-2` | `#1C1611` | Card/nav surface on dark |
+| `--ink` | `#F4EEDF` | Primary text on dark |
+| `--ink-dim` | `#B7AC97` | Secondary text on dark |
+| `--paper` | `#F6F1E6` | Light surface — review/comment reading sections |
+| `--paper-ink` | `#1F2A44` | Primary text on paper |
+| `--paper-dim` | `#6B6152` | Secondary text **on paper only** — fails contrast on `--bg`, use `--ink-dim` there instead |
+| `--primary` | `#B23A2E` | Oxblood ink — Completed status, rating-stamp ring, heart reaction |
+| `--accent` | `#B8892F` | Mustard gold — In Progress status, thumbs-up reaction, hero kicker text |
+| `--teal` | `#6E9491` | On Hold status, fire/flame reaction |
 
-| Token | Role | Light | Dark |
-|---|---|---|---|
-| `primary` | Stamp red — primary actions, active states, filled star portion, the "+" add button | `#B23A2E` | `#B23A2E` (holds up fine on dark; revisit if contrast testing says otherwise) |
-| `accent` | Gold — secondary highlights, avatar fallback color 2 | `#B8892F` | `#B8892F` |
-| `paper` | App background | `#F7F3E7` | `#221D17` |
-| `paper-2` | Card / surface background (stub cards, detail card) | `#EDE6CF` | `#171310` |
-| `ink` | Primary text, icons, borders-when-solid | `#1F2A44` | `#EFE7D6` |
-| `line` | Hairlines, dashed "tear" dividers, chip borders | `#C7BA98` | `#4A4032` |
+`--primary` and `--accent` are carried over unchanged from Passport & Postmark (and the Stub & Stamp exploration before it) for continuity — same ink, now stamped onto a darker, grainier ground. `--teal` is new in this pass (previously On Hold shared a neutral tag color).
 
-Light `paper`/`paper-2` were deliberately pulled close to white (from an initial `#EAE1CB`/`#DCCFA9` kraft tone) per direct feedback — keeps the kraft-paper warmth without reading as tan/beige at a glance.
-
-`primary` and `accent` are the two colors exposed as live pickers in the mockup and should map directly to Vuetify's `theme.colors.primary` / `theme.colors.secondary` (or a custom `accent` key) — everything else (`paper`, `paper-2`, `ink`, `line`) is theme-structural and swaps as a pair between light/dark, not user-tunable.
-
-All six tokens above are meant to live in exactly one editable place in the real build, not be copy-pasted across components — see "Theming architecture" in [02-tech-stack.md](02-tech-stack.md) for the mechanism (a single palette file feeding both Vuetify's theme config and the bespoke components via CSS custom properties).
+**Open question — light/dark mode:** [02-tech-stack.md](02-tech-stack.md) commits to Vuetify light *and* dark themes for v1, and Passport & Postmark had a full light/dark pair for every token. Cinematic Cut's `--bg` / `--paper` split reads instead as two surface *types within one screen* (dark hero vs. paper reading section), not a user-togglable light/dark mode. Whether Cinematic Cut's dark surface simply *is* the app's dark theme (with a separate, not-yet-designed light theme built from the same tokens), or whether the light/dark toggle decision needs revisiting now that the direction is dark-first, is tracked in [10-open-questions.md](10-open-questions.md).
 
 ## Typography
 
+Three families, all Google Fonts, loaded via one `<link>` in the prototype:
+
+```
+https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400;1,6..96,500&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap
+```
+
 | Role | Face | Usage |
 |---|---|---|
-| Display / labels / nav / stamps | `ui-monospace, "SF Mono", "Courier New", monospace` | Section headings, nav labels, chip text, stamp corner badge, ticket metadata — the "ticket printer" voice |
-| Body | System sans (`-apple-system, "Segoe UI", system-ui, sans-serif`) | Review text, feed copy — needs to stay readable at length, so it stays plain |
-| Numerals | Same monospace, `font-variant-numeric: tabular-nums` | Ratings, counts, dates — anything columnar |
+| Display | **Bodoni Moda** (`--font-serif`) | App wordmark ("*Done.*", italic), media titles, section headers. Large, high-contrast, cinematic. |
+| Body | **Archivo** (`--font-sans`) | Reviews, comments, running text. |
+| Labels / meta / stamps | **IBM Plex Mono** (`--font-mono`) | Status tags, meta lines ("Film · 2024"), stamp numerals, nav labels — uppercase + letter-spaced. |
 
-No webfonts — system stacks only, both for the mockup's CSP constraints and because it avoids a font-loading dependency in the real app too. If a licensed monospace face is wanted later for more character (e.g. an actual ticket/dot-matrix face), swap it in at the token level; the design doesn't depend on this exact system font.
+This reverses Passport & Postmark's "no webfonts, system stacks only" decision (that constraint was about the mockup tool's CSP and avoiding a font-loading dependency; Cinematic Cut's large-serif display type isn't achievable from a system stack). **Open question:** whether the real build loads these from Google Fonts' CDN or self-hosts the three families — self-hosting fits the app's self-hosted/offline-PWA posture better (no third-party request, works if Google Fonts is unreachable) but adds the font files to the repo/image. Tracked in [10-open-questions.md](10-open-questions.md).
 
-## Layout motifs
+## Motifs — how each is actually built
 
-- **Ticket-stub cards** — shelf items render as a stub: poster block, a dashed "tear" line with punched semicircle notches on each end, then title/meta below the tear.
-- **Stamp corner** — the currently-open item detail card gets a rotated (~9°) outlined badge in the corner ("Admit One"), stamp-red.
-- **Dashed dividers** — `1.5px dashed var(--line)` separates sub-sections within a card (rating → tag-friends → review → footer) instead of solid rules, keeping the ticket-paper feel consistent throughout, not just on the stub cards.
-- **Avatar stack** — Tag Friends / "Watched with" renders as overlapping circular avatars (negative margin overlap) ending in a dashed-outline "+" add slot.
-- **Half-star rating** — a two-layer text trick: an outline row of five `★` in `line` color, with a second identical row in `primary`/`accent` color clipped to `width: calc(rating / 5 * 100%)` via `overflow: hidden`. Cheap to implement in any framework, no icon font or SVG-per-star needed, and half-star precision falls out for free from the percentage width.
-- **Reduced motion respected** — no motion in this direction beyond default UI transitions; `prefers-reduced-motion: reduce` disables what little there is.
+All implemented as plain CSS/SVG, no images. See [`mockups/design-tokens.css`](mockups/design-tokens.css) for copy-pasteable versions of the ones below marked *(css)*.
 
-## Favourite background stamp
+- **Film grain** *(css)* — a `.grain` overlay div (`position:absolute;inset:0`) with an inline SVG `feTurbulence` data-URI background, `mix-blend-mode:overlay`, low opacity. Stack it as the first child of any `position:relative` dark surface (hero art, poster cards).
+- **Postmark rating badge** *(css)* — `.stamp-postmark`: a circle, `background:var(--paper)`, `border:1.5px solid var(--primary)`, a dashed inner ring via `::before` inset border, `transform:rotate(-9deg)`, drop shadow. Holds the numeric rating (e.g. "4.5") + "RATED" in mono. This is the *display* treatment for a logged rating.
+- **Visa-stamp rewatch history** — smaller dashed-ring circles (no fill badge, just the dashed ring + mono month/day), shown in a row for each prior watch of a re-logged item.
+- **Ticket perforation** *(css)* — `.tear`: a dashed `border-top`, used as a section divider (rating → tag-friends → review → footer) inside the cream reading sections.
+- **Status tag** *(css)* — `.status-tag`: mono uppercase pill, `border:1px solid currentColor`, `rotate(-3deg)`. Color = `--primary` (Completed), `--accent` (In Progress), `--ink-dim`/`--paper-dim` (Planned/Dropped, dark/light bg respectively), `--teal` (On Hold).
+- **Spoiler mask** — inline `span` with `color:transparent; text-shadow:0 0 8px color-mix(in srgb, var(--paper-ink) 65%, transparent)` — blurs the masked text without hiding its shape. Paired with a "Contains Spoilers" status tag.
+- **Reaction pills** — small rounded-pill badges, inline SVG icon (stroke-based, never emoji) + mono count. Only 3 of the schema's 6 reaction types are illustrated so far (heart, thumbs-up, flame) — see Open items below.
+- **Avatar stack** *(carried over)* — Tag Friends / "Watched with" renders as overlapping circular avatars (negative margin overlap) ending in a dashed-outline "+" add slot.
+- **Half-star rating** *(carried over)* — a two-layer text trick for *entering* a rating: an outline row of five `★` in a dim color, with a second identical row in `--primary`/`--accent` clipped to `width: calc(rating / 5 * 100%)` via `overflow: hidden`. Cheap in any framework, half-star precision falls out for free from the percentage width. Cinematic Cut's screens only show the postmark badge (display, not entry) — this widget is assumed to still be how a rating gets entered in the add/rate flow, which Cinematic Cut hasn't designed yet (see Open items).
+- **Favourite background stamp** *(carried over)* — a favourited item gets a large postmark rendered *behind* the card's content: two concentric dashed/solid rings centered just past the card's top-right corner (clipped by the card's rounded edge) at low opacity, with a chain of 5 small heart icons strung along the ring gap. Not shown on any Cinematic Cut artboard, so unconfirmed whether it survives the shelf-card redesign; see Open items.
+- **Reduced motion respected** *(carried over)* — no motion beyond default UI transitions; `prefers-reduced-motion: reduce` disables what little there is.
 
-A favourited item gets a large postmark rendered *behind* the card's content, not a small badge competing for space: two concentric dashed/solid rings, centered just past the card's top-right corner so only the bottom-left arc bleeds into view (clipped by the card's own rounded edge), at low opacity (16% light / 22% dark). A chain of 5 small heart icons is strung along the ring gap, each rotated to point radially outward (tip away from the ring's center), tapering slightly larger toward the middle of the chain for a hand-set rather than mechanical feel. Non-favourited items simply omit the whole layer — see the mockup's dedicated with/without comparison section.
+## Screens
 
-## Activity page structure
+All three screens exist as both a mobile artboard (390×844) and a desktop artboard (1440×900). See [`mockups/screens/`](mockups/screens) for the exports.
 
-Two sections replace a single shelf/feed view:
+### Shelf
+Poster grid (2-col mobile, 4-col desktop) of the signed-in user's `UserMedia` rows. Each card: gradient/grain "poster" placeholder, a type tag (Film/TV/Game/Book), a postmark rating badge when `LogEntry.rating` exists, a rotated status tag (`UserMedia.status`), title + type/year meta below. Filter chips across the top match the status enum exactly (All / Planned / In Progress / Completed / On Hold / Dropped). Mobile: bottom tab bar (Shelf/Search/Add/Activity/Profile — see Navigation below). Desktop: left sidebar nav instead.
 
-- **All Activity** — a chronological stream of small stub cards (the same card used for the shelf), each carrying a small circular avatar badge overlapping the poster's bottom-left corner so attribution (yours or a friend's) reads at a glance without enlarging the card. 4 columns on desktop, 2 on mobile — same card, same CSS, just a different grid.
-- **My Activity** — your own log entries only, shown one full "boarding pass" detail card at a time in a horizontally swipeable carousel (native scroll-snap, so touch/trackpad drag works with no custom drag handling needed). Desktop and mobile differ deliberately here: **mobile** centers the active card with a low-opacity/scaled-down peek of the next card on either side (classic gallery feel); **desktop** left-aligns instead (first card flush with the section heading) and only fades/shrinks a card as it approaches the *right* edge of the viewport — nothing dims just for being off-center, since on a wide screen "centered" reads as arbitrary rather than intentional.
+### Detail
+One `LogEntry` in full: big hero poster art with gradient scrim + overlapping postmark rating badge, title, status + logged date, "Watched with" tagged friends (`LogEntryParticipant`), rewatch visa-stamps (prior `LogEntry` rows for the same target) when `is_rewatch`, the review text with spoiler mask (`contains_spoilers`), reaction pills (3 of 6 types shown), and a couple of `Comment` previews with a "view all N" link. Mobile stacks hero-over-body; desktop splits into a sticky poster column + scrolling content column.
+
+### Activity
+A single chronological feed of friends' `LogEntry` rows (queried via the `Friendship` graph). Each item: a small postmark date stamp, friend avatar + name, poster thumbnail, type/rating or type/status meta, a short review excerpt, and reaction/comment counts. Desktop adds a connecting vertical rail between postmark stamps (timeline feel) and more items per view. **This is a single feed** — it doesn't distinguish "your own activity" from "friends' activity" the way Passport & Postmark's two-section (All Activity / My Activity, with a swipeable "boarding pass" carousel for your own entries) structure did. Whether that split still applies on top of this visual treatment, or whether a single feed is the intended simplification, is tracked in [10-open-questions.md](10-open-questions.md).
+
+## Navigation — 5-slot bar with a raised center "Add"
+
+Consistent with Passport & Postmark's decision, carried through unchanged: **fast, low-friction review logging is the app's core loop** ("finish something → log it," from [03-features.md](03-features.md)'s mobile-first notes), so the add action gets the most prominent single slot in the bar rather than being buried inside Search.
+
+- **Layout:** Shelf · Search · **Add** (raised, primary-red fill, drop shadow) · Activity · Profile.
+- **Behavior:** tapping Add opens the fast-log flow directly — search/select an item and log a completed watch/play/read with rating, review, spoiler flag, favourite, and Tag Friends in one flow — rather than routing through the Search tab first.
+- **Search tab** still exists for browsing the catalog / adding something to your backlog (Planned status) without necessarily logging a completion yet.
+
+This is a UX decision, not just a visual one — see the note in [03-features.md](03-features.md).
+
+## Carried over, not yet re-validated in Cinematic Cut
+
+Cinematic Cut's prototype only covers Shelf, Detail, and Activity — it's a style and layout reference, not production code (no framework, no real API data, no accessibility pass beyond basic contrast). The following decisions from Passport & Postmark aren't contradicted by anything in Cinematic Cut, but also aren't shown on any of its artboards, so treat them as still-standing defaults rather than confirmed:
+
+- The favourite heart-chain background stamp.
+- The half-star rating widget as the rating-*entry* control (vs. the postmark badge, which is confirmed as the rating-*display* treatment).
+- The "All Activity" / "My Activity" swipeable-carousel structure on the Activity page.
+
+## Open items — not yet designed
+
+Cinematic Cut deliberately covers 3 of the app's screens to establish the direction, not the whole app. Still open, following the same visual system:
+
+- Episode/season-level logging UI (`Episode`, the `episode_id`/`season_number` split on `LogEntry`) — Phase 4 of the data model.
+- A dedicated friends list / friend-request screen (`Friendship` status: pending/accepted/declined) — Phase 5.
+- A full comment thread view (nested replies via `Comment.parent_comment_id`) — currently only a 2-comment preview exists.
+- All 6 reaction types (`thumbs_up, heart, laugh, wow, sad, fire`) — only heart/thumbs-up/flame have icons so far.
+- A notifications screen (`Notification`, 6 types) — Phase 7.
+- Add/rate flow (creating a `LogEntry`: status, rating, review, spoiler toggle, tag friends) — implied by the Shelf/Detail screens but not built as its own screen. This is also where the half-star entry widget would live.
+- Auth/invite screens (`Invitation`) — Phase 1, not covered at all.
 
 ## Iconography
 
-Simple stroke icons (`stroke-width: 1.6-1.7`, `currentColor`, no fill except small solid accents like the bell dot) built from basic shapes — rects, lines, circles — rather than complex path data: film-strip, TV, game controller, book, bell, heart, comment, plus, grid (shelf), search, activity (pulse), profile. Kept deliberately plain so they read as "ticket iconography" rather than a generic icon-font pull.
-
-## Navigation — 5-slot bar with a raised center "+"
-
-Original mockups used a flat 4-item bar (Shelf / Search / Activity / Profile). Revised per direct feedback: **fast, low-friction review logging is the app's core loop** ("finish something → log it," from [03-features.md](03-features.md)'s mobile-first notes), so the add action needed to be the most prominent single element in the bar, not buried inside the Search tab.
-
-- **New layout:** Shelf · Search · **[+]** · Activity · Profile — five slots, the center one a raised circular button (primary-red fill, paper-colored ring, drop shadow) that visually breaks the bar's top edge.
-- **Behavior:** tapping "+" opens the fast-log flow directly — search/select an item and log a completed watch/play/read with rating, review, spoiler flag, favourite, and Tag Friends in one flow — rather than routing through the Search tab first.
-- **Search tab still exists** for the separate job of browsing the catalog / adding something to your backlog (Planned status) without necessarily logging a completion yet.
-- No text label under the "+" (icon-only, like Instagram/TikTok's center action) — its size and elevation carry the meaning; a label would fight the "this is the one to reach for" prominence it's meant to have.
-
-This is a UX decision, not just a visual one — see updated note in [03-features.md](03-features.md).
+Simple stroke icons (`stroke-width: 1.6-1.7`, `currentColor`, no fill except small solid accents) built from basic shapes — rects, lines, circles — rather than complex path data: film-strip, TV, game controller, book, bell, heart, comment, plus, grid (shelf), search, activity (pulse), profile. Kept deliberately plain so they read as "ticket iconography" rather than a generic icon-font pull.
 
 ## Translating to the real build
 
-This mockup is plain HTML/CSS/JS for fast iteration, not Vuetify. When Phase 8 ([09-roadmap.md](09-roadmap.md)) builds the real frontend:
+This mockup is plain HTML/CSS (canvas-tool export), not Vuetify. When Phase 8 ([09-roadmap.md](09-roadmap.md)) builds the real frontend:
 
-- Colors become a custom Vuetify theme (light + dark variants) using the token table above.
-- The ticket-stub card, stamp-corner badge, dashed-divider card, avatar stack, and half-star rating are **bespoke components** — none of these are stock Vuetify components, they're custom components styled with Sass on top of Vuetify's base (cards/buttons/inputs) per [02-tech-stack.md](02-tech-stack.md).
+- Colors become a custom Vuetify theme using the token table above — see "Theming architecture" in [02-tech-stack.md](02-tech-stack.md) for the single-source-of-truth mechanism.
+- The postmark rating badge, visa-stamp rewatch rings, ticket-perforation divider, status tag, spoiler mask, reaction pills, avatar stack, and half-star rating are all **bespoke components** — none are stock Vuetify components, they're custom components styled with Sass on top of Vuetify's base (cards/buttons/inputs) per [02-tech-stack.md](02-tech-stack.md).
 - The raised center nav button is a custom-positioned button over/within Vuetify's `v-bottom-navigation`, not a stock variant of it.
+- The three Google Fonts need adding to the font-loading strategy (see the Typography open question above) alongside Vuetify's default type config.
