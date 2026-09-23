@@ -28,7 +28,10 @@ First-time setup after `docker compose up -d`, since migrations don't run automa
 
 ```
 docker compose exec php-fpm php artisan migrate
+docker compose exec php-fpm php artisan db:seed --class=RolePermissionSeeder
 ```
+
+The seeder step matters: it creates the Admin/Manager/Member roles that `spatie/laravel-permission` expects to already exist. Skipping it and going straight to bootstrapping the first admin (`php artisan app:create-admin`, see Phase 1 in the roadmap) fails with a clear error telling you to run this first.
 
 ### Common commands
 
