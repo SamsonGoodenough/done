@@ -289,7 +289,7 @@
     <p class="desc">Where "Done" actually stands right now, phase by phase — regenerated from <code>docs/planning/09-roadmap.md</code> by the <code>update-roadmap</code> skill. Treat the markdown file as the source of truth; this page is just a nicer way to read it.</p>
     <!-- META:START -->
     <div class="meta">
-      <span>Generated 2026-07-28</span>
+      <span>Generated 2026-08-31</span>
       <span>Branch <code>feature/phase1-user-invitation-models</code></span>
       <span>Source <code>docs/planning/09-roadmap.md</code></span>
     </div>
@@ -339,15 +339,16 @@
       <span class="phase-frac">1 / 5</span>
     </div>
     <p class="phase-status progress">In Progress</p>
-    <p class="phase-note">Backend work so far lives on <code>feature/phase1-user-invitation-models</code> (not yet merged, no PR opened yet).</p>
+    <p class="phase-note">Backend work so far lives on <code>feature/phase1-user-invitation-models</code> (not yet merged, no PR opened yet) — most of it is still uncommitted, pending review.</p>
     <ul class="checklist">
       <li class="done"><span class="box">✓</span><span class="item-text"><span>Repo layout (frontend/, backend/, docker/, compose.yml), Laravel app scaffold, Docker Compose skeleton (nginx + php-fpm + postgres)</span><span class="evidence">Merged to main. Also includes queue-worker and mailhog, beyond the original baseline.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>users, invitations migrations</span><span class="evidence">Built and verified on the open branch. Also adds avatar_path/profile_visibility/deactivated_at and soft deletes beyond the base spec.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Sanctum SPA auth (login/logout, session cookie)</span><span class="evidence">Not started — laravel/sanctum not yet installed.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>spatie/laravel-permission roles/permissions wired up (Admin/Manager/Member)</span><span class="evidence">Package installed and HasRoles added to User on the open branch; roles not seeded, no policies/gates enforced.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Invitation flow: send, accept, expire; first-admin bootstrap command</span><span class="evidence">Invitation model/migration exist on the open branch; no mail sending, accept endpoint, or artisan command yet.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>users, invitations migrations</span><span class="evidence">Built and verified, uncommitted on the open branch. Also adds avatar_path/profile_visibility/deactivated_at and soft deletes beyond the base spec.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>Sanctum SPA auth (login/logout, session cookie)</span><span class="evidence">Built and verified end-to-end through nginx (csrf-cookie priming, login, /api/user, logout, rate-limited lockout, deactivated-user block) plus automated feature tests; uncommitted on the open branch.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>spatie/laravel-permission roles/permissions wired up (Admin/Manager/Member)</span><span class="evidence">Roles and a first permission batch (send-invitations, change-user-role, deactivate-user) seeded and enforced via policy/gate checks; the latter two aren't consumed by an endpoint yet (Phase 10). Uncommitted on the open branch.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>Invitation flow: send, accept, expire; first-admin bootstrap command</span><span class="evidence">Full flow built (send/accept/revoke/resend, Manager-can-only-invite-Member rule, duplicate guards, revoke as soft delete, email via queued Mailable) plus the guarded app:create-admin command; verified via curl and 16 passing feature tests. Uncommitted on the open branch.</span></span></li>
     </ul>
     <p class="callout">No frontend yet beyond a minimal login page to prove auth end-to-end — a boundary for this phase, not a task to check off.</p>
+    <p class="callout">Also fixed in passing: PHPUnit's env overrides weren't taking effect, so tests were silently running against the real dev Postgres database. Fixed with an explicit test bootstrap plus a hard guard that refuses to run unless the DB connection is sqlite.</p>
   </section>
 
   <section class="phase" id="phase-2">

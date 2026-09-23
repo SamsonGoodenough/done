@@ -13,15 +13,17 @@ Docs in this folder. Output: agreed feature scope, data model, tech choices.
 ## Phase 1 — Backend foundation
 
 **Status:** In Progress
-*Backend work so far lives on `feature/phase1-user-invitation-models` (not yet merged, no PR opened yet).*
+*Backend work so far lives on `feature/phase1-user-invitation-models` (not yet merged, no PR opened yet) — most of it is still uncommitted working-tree changes on top of that branch, pending review.*
 
 - [x] Repo layout (`frontend/`, `backend/`, `docker/`, `compose.yml`, see [08-architecture-deployment.md](08-architecture-deployment.md)), Laravel app scaffold, Docker Compose skeleton (nginx + php-fpm + postgres) — merged to `main`; also includes `queue-worker` and `mailhog`, beyond the original nginx/php-fpm/postgres baseline
-- [ ] `users`, `invitations` migrations — built and verified on the open branch; also adds `avatar_path`/`profile_visibility`/`deactivated_at` and soft deletes beyond the base spec, per the timestamps/soft-deletes convention in [04-data-model.md](04-data-model.md)
-- [ ] Sanctum SPA auth (login/logout, session cookie) — not started, `laravel/sanctum` not yet installed
-- [ ] `spatie/laravel-permission` roles/permissions wired up (Admin/Manager/Member) — package installed and `HasRoles` added to `User` on the open branch; Admin/Manager/Member roles aren't seeded yet and no policies/gates are enforced
-- [ ] Invitation flow: send, accept, expire; first-admin bootstrap command — `Invitation` model/migration exist on the open branch; no mail sending, accept endpoint, or `artisan app:create-admin` command yet
+- [ ] `users`, `invitations` migrations — built and verified, uncommitted on the open branch; also adds `avatar_path`/`profile_visibility`/`deactivated_at` and soft deletes beyond the base spec, per the timestamps/soft-deletes convention in [04-data-model.md](04-data-model.md)
+- [ ] Sanctum SPA auth (login/logout, session cookie) — built and verified end-to-end through nginx (csrf-cookie priming, login, `/api/user`, logout, rate-limited lockout after 5 failed attempts, deactivated-user block), plus automated feature tests; uncommitted on the open branch
+- [ ] `spatie/laravel-permission` roles/permissions wired up (Admin/Manager/Member) — roles and a first batch of permissions (`send-invitations`, `change-user-role`, `deactivate-user`) are seeded and enforced via policy/gate checks; `change-user-role`/`deactivate-user` are defined but not yet consumed by an endpoint (that's Phase 10's admin UI backing routes); uncommitted on the open branch
+- [ ] Invitation flow: send, accept, expire; first-admin bootstrap command — full flow built (send/accept/revoke/resend, Manager-can-only-invite-Member rule, duplicate-email/duplicate-invite guards, revoke modeled as a soft delete, invite email via queued Mailable caught by Mailhog) and the `app:create-admin` bootstrap command (guarded against running when a user already exists); verified via curl through nginx and 16 passing feature tests; uncommitted on the open branch
 
 *No frontend yet beyond a minimal login page to prove auth end-to-end — a boundary for this phase, not a task to check off.*
+
+Also fixed in passing: PHPUnit's `<env>` overrides in `phpunit.xml` weren't actually taking effect (compose.yml injects real container env vars, which Laravel's `env()` helper can read ahead of PHPUnit's override under some conditions) — tests were silently running `RefreshDatabase` against the real dev Postgres database. Fixed with an explicit `tests/bootstrap.php` that forces `getenv()`/`$_ENV`/`$_SERVER` before Laravel boots, plus a hard guard in `tests/TestCase.php` that refuses to run if `database.default` isn't `sqlite`.
 
 ## Phase 2 — Media catalog + external integrations
 
