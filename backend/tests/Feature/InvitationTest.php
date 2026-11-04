@@ -227,6 +227,31 @@ class InvitationTest extends TestCase
         Mail::assertQueued(InvitationMail::class);
     }
 
+    public function test_can_resend_an_expired_but_unaccepted_invitation(): void
+    {
+        Mail::fake();
+        $admin = $this->admin();
+        [$invitation, $originalRawToken] = $this->createInvitation(invitedBy: $admin, expiresAt: now()->subDay());
+
+        $response = $this->actingAs($admin)->postJson("/api/invitations/{$invitation->id}/resend");
+
+        $response->assertOk();
+        $invitation->refresh();
+        $this->assertNotEquals(Invitation::hashToken($originalRawToken), $invitation->token);
+        $this->assertTrue($invitation->expires_at->isFuture());
+        Mail::assertQueued(InvitationMail::class);
+    }
+
+    public function test_cannot_resend_an_already_accepted_invitation(): void
+    {
+        $admin = $this->admin();
+        [$invitation] = $this->createInvitation(invitedBy: $admin, acceptedAt: now());
+
+        $response = $this->actingAs($admin)->postJson("/api/invitations/{$invitation->id}/resend");
+
+        $response->assertStatus(410);
+    }
+
     /**
      * @return array{0: Invitation, 1: string} the invitation and its raw (pre-hash) token
      */

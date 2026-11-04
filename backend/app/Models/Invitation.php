@@ -53,10 +53,20 @@ class Invitation extends Model
         return static::where('token', static::hashToken($rawToken))->first();
     }
 
+    public function hasBeenAccepted(): bool
+    {
+        return $this->accepted_at !== null;
+    }
+
+    public function hasExpired(): bool
+    {
+        return $this->expires_at->isPast();
+    }
+
     /** Not expired and not yet accepted. */
     public function isPending(): bool
     {
-        return $this->accepted_at === null && $this->expires_at->isFuture();
+        return ! $this->hasBeenAccepted() && ! $this->hasExpired();
     }
 
     /**

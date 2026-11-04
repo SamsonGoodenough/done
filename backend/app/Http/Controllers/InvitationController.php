@@ -63,8 +63,12 @@ class InvitationController extends Controller
     {
         $this->authorize('manage', $invitation);
 
-        if (! $invitation->isPending()) {
-            abort(410, 'This invitation is no longer pending: it was already accepted or has expired.');
+        // Deliberately checks hasBeenAccepted() only, not isPending(): an
+        // expired-but-unaccepted invitation is exactly the case resend
+        // exists for (see docs/planning/06-roles-permissions.md, "before
+        // it's accepted" has no expiry condition).
+        if ($invitation->hasBeenAccepted()) {
+            abort(410, 'This invitation has already been used.');
         }
 
         $rawToken = Invitation::generateRawToken();
@@ -94,11 +98,11 @@ class InvitationController extends Controller
 
         abort_if($invitation === null, 404, 'Invitation not found.');
 
-        if ($invitation->accepted_at !== null) {
+        if ($invitation->hasBeenAccepted()) {
             abort(410, 'This invitation has already been used.');
         }
 
-        if ($invitation->expires_at->isPast()) {
+        if ($invitation->hasExpired()) {
             abort(410, 'This invitation has expired.');
         }
 
