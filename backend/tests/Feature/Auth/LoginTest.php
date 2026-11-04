@@ -84,4 +84,27 @@ class LoginTest extends TestCase
 
         RateLimiter::clear(mb_strtolower($user->email).'|127.0.0.1');
     }
+
+    public function test_repeated_attempts_against_a_deactivated_account_are_also_rate_limited(): void
+    {
+        // Regression: the deactivated-account branch didn't call
+        // RateLimiter::hit(), so correct-password attempts against a
+        // deactivated account never counted toward the lockout the way
+        // wrong-password attempts do.
+        $user = User::factory()->create([
+            'password' => 'password',
+            'deactivated_at' => now(),
+        ]);
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->postJson('/api/login', ['email' => $user->email, 'password' => 'password']);
+        }
+
+        $response = $this->postJson('/api/login', ['email' => $user->email, 'password' => 'password']);
+
+        $response->assertUnprocessable();
+        $this->assertStringContainsString('Too many login attempts', $response->json('message'));
+
+        RateLimiter::clear(mb_strtolower($user->email).'|127.0.0.1');
+    }
 }
