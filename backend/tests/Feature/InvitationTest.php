@@ -182,6 +182,28 @@ class InvitationTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_accept_rolls_back_cleanly_if_the_invited_role_does_not_exist(): void
+    {
+        [$invitation, $rawToken] = $this->createInvitation(role: UserRole::Manager);
+
+        // Simulate a corrupted/incomplete role setup after the invitation
+        // was already sent: assignRole('manager') should throw
+        // RoleDoesNotExist inside accept()'s transaction, and the User row
+        // created just before it should roll back rather than leaving an
+        // orphaned, roleless user with the email now permanently consumed.
+        \Spatie\Permission\Models\Role::where('name', UserRole::Manager->value)->delete();
+
+        $this->postJson("/api/invitations/{$rawToken}/accept", [
+            'name' => 'New Person',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ])->assertStatus(500);
+
+        $this->assertDatabaseMissing('users', ['email' => $invitation->email]);
+        $this->assertNull($invitation->fresh()->accepted_at);
+        $this->assertGuest();
+    }
+
     public function test_sender_can_revoke_their_own_invitation(): void
     {
         $manager = $this->manager();

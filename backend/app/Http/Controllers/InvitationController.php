@@ -12,6 +12,7 @@ use App\Models\Invitation;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
 class InvitationController extends Controller
@@ -44,14 +45,18 @@ class InvitationController extends Controller
     {
         $invitation = $this->findPendingOrFail($token);
 
-        $user = User::create([
-            'name' => $request->string('name')->value(),
-            'email' => $invitation->email,
-            'password' => $request->string('password')->value(),
-        ])->refresh();
-        $user->assignRole($invitation->role->value);
+        $user = DB::transaction(function () use ($invitation, $request) {
+            $user = User::create([
+                'name' => $request->string('name')->value(),
+                'email' => $invitation->email,
+                'password' => $request->string('password')->value(),
+            ])->refresh();
+            $user->assignRole($invitation->role->value);
 
-        $invitation->forceFill(['accepted_at' => now()])->save();
+            $invitation->forceFill(['accepted_at' => now()])->save();
+
+            return $user;
+        });
 
         Auth::login($user);
         $request->session()->regenerate();
