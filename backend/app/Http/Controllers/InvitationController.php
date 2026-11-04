@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Mail;
 
 class InvitationController extends Controller
 {
+    private const INVITATION_LIFETIME_DAYS = 7;
+
     public function store(SendInvitationRequest $request): InvitationResource
     {
         $rawToken = Invitation::generateRawToken();
@@ -26,7 +28,7 @@ class InvitationController extends Controller
             'token' => Invitation::hashToken($rawToken),
             'role' => UserRole::from($request->string('role')->value()),
             'invited_by' => $request->user()->id,
-            'expires_at' => now()->addDays(7),
+            'expires_at' => now()->addDays(self::INVITATION_LIFETIME_DAYS),
         ]);
         // Avoids a round trip for InvitationResource's invited_by: we already
         // have the inviter in hand, it's just the request's authenticated user.
@@ -83,7 +85,7 @@ class InvitationController extends Controller
 
         $invitation->forceFill([
             'token' => Invitation::hashToken($rawToken),
-            'expires_at' => now()->addDays(7),
+            'expires_at' => now()->addDays(self::INVITATION_LIFETIME_DAYS),
         ])->save();
 
         Mail::to($invitation->email)->queue(new InvitationMail($invitation, $rawToken));
