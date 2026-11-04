@@ -62,6 +62,20 @@ This has been built and smoke-tested for the dev path only so far; the prod path
 - **Never co-author commits.** Do not add a Co-Authored-By trailer or a Claude session link to any commit in this repo. Commits should read as written entirely by the user, with no attribution to Claude.
 - **Branch naming.** New feature work happens on a branch named `feature/<short-description>`, not directly on `main`. Fixes for a tracked GitHub issue happen on `issue/<short-description>` (including the issue number is fine, e.g. `issue/42-login-redirect-loop`). Planning-doc-only changes with no code are the exception and can still go straight to `main`.
 
+## Agent skills
+
+### Issue tracker
+
+Issues live in this repo's GitHub Issues (`gh` CLI). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default triage label vocabulary (needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout: `GLOSSARY.md` + `docs/adr/` at the repo root (neither exists yet; created lazily by `/domain-modeling`). See `docs/agents/domain.md`.
+
 ## What "Done" is
 
 An invite-only, self-hosted tracker for movies, TV shows, games, and books for a small trusted group (well under 50 users). Rate 0 to 5 with half stars, write reviews with spoiler flags, favourite, log rewatches diary-style, tag friends who shared the experience, and keep a backlog. Full product framing is in `README.md` and `docs/planning/01-overview.md`.
