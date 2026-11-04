@@ -28,6 +28,9 @@ class InvitationController extends Controller
             'invited_by' => $request->user()->id,
             'expires_at' => now()->addDays(7),
         ]);
+        // Avoids a round trip for InvitationResource's invited_by: we already
+        // have the inviter in hand, it's just the request's authenticated user.
+        $invitation->setRelation('inviter', $request->user());
 
         Mail::to($invitation->email)->queue(new InvitationMail($invitation, $rawToken));
 
@@ -36,7 +39,7 @@ class InvitationController extends Controller
 
     public function show(string $token): InvitationResource
     {
-        $invitation = $this->findPendingOrFail($token);
+        $invitation = $this->findPendingOrFail($token)->load('inviter');
 
         return InvitationResource::make($invitation);
     }
@@ -85,7 +88,7 @@ class InvitationController extends Controller
 
         Mail::to($invitation->email)->queue(new InvitationMail($invitation, $rawToken));
 
-        return InvitationResource::make($invitation);
+        return InvitationResource::make($invitation->load('inviter'));
     }
 
     public function destroy(Invitation $invitation): JsonResponse

@@ -60,6 +60,19 @@ class InvitationTest extends TestCase
         Mail::assertQueued(InvitationMail::class);
     }
 
+    public function test_sent_invitation_includes_the_inviters_name(): void
+    {
+        Mail::fake();
+        $admin = $this->admin();
+
+        $response = $this->actingAs($admin)->postJson('/api/invitations', [
+            'email' => 'invitee@example.com',
+            'role' => 'member',
+        ]);
+
+        $response->assertCreated()->assertJsonPath('data.invited_by', $admin->name);
+    }
+
     public function test_manager_can_invite_a_member(): void
     {
         Mail::fake();
@@ -129,7 +142,9 @@ class InvitationTest extends TestCase
 
         $response = $this->getJson("/api/invitations/{$rawToken}");
 
-        $response->assertOk()->assertJsonPath('data.email', $invitation->email);
+        $response->assertOk()
+            ->assertJsonPath('data.email', $invitation->email)
+            ->assertJsonPath('data.invited_by', $invitation->inviter->name);
     }
 
     public function test_unknown_token_returns_404(): void
