@@ -37,6 +37,10 @@ class SendInvitationRequest extends FormRequest
             function (Validator $validator): void {
                 $role = UserRole::tryFrom($this->string('role')->value());
 
+                // Deliberately hasRole(Admin) rather than a granular
+                // permission: this rule is "you must hold the Admin role",
+                // not a delegable capability a Manager could ever be
+                // granted separately, unlike send-invitations above.
                 if ($role !== null && $role !== UserRole::Member && ! $this->user()->hasRole(UserRole::Admin->value)) {
                     $validator->errors()->add('role', 'Only an Admin can invite a Manager or Admin.');
                 }
