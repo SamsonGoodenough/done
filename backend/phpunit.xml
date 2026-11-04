@@ -24,7 +24,7 @@
             environment variables for php-fpm, and PHPUnit only overrides an
             already-set environment variable when force="true" is given.
             Without it, tests silently run against the real dev Postgres
-            database via RefreshDatabase's migrate:fresh — which drops and
+            database via RefreshDatabase's migrate:fresh, which drops and
             recreates every table on every test run. Confirmed the hard way;
             do not remove force="true" from the DB_* entries below.
         -->
