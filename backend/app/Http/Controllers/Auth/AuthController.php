@@ -22,6 +22,11 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
+        // Hardcoded to 'web' rather than the default guard: auth:sanctum on
+        // this route (config/sanctum.php) resolves to 'web' for every caller
+        // today since nothing issues bearer tokens yet. If that changes,
+        // this needs to log out whichever guard actually authenticated the
+        // request instead of assuming 'web'.
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
