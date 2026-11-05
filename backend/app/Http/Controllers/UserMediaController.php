@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\MediaType;
+use App\Enums\ShelfStatus;
 use App\Http\Requests\StoreUserMediaRequest;
 use App\Http\Requests\UpdateUserMediaRequest;
 use App\Http\Resources\UserMediaResource;
@@ -10,6 +12,7 @@ use App\Services\Shelf\ShelfEntryManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Validation\Rule;
 
 class UserMediaController extends Controller
 {
@@ -17,8 +20,8 @@ class UserMediaController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $validated = $request->validate([
-            'status' => ['sometimes', 'string'],
-            'type' => ['sometimes', 'string'],
+            'status' => ['sometimes', Rule::enum(ShelfStatus::class)],
+            'type' => ['sometimes', Rule::enum(MediaType::class)],
             'favourite' => ['sometimes', 'boolean'],
         ]);
 
