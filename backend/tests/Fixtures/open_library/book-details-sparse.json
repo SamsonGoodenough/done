@@ -1,0 +1,17 @@
+{
+    "OLID:OL62536872M": {
+        "url": "http://openlibrary.org/books/OL62536872M/The_Lord_of_the_Rings",
+        "key": "/books/OL62536872M",
+        "title": "The Lord of the Rings",
+        "authors": [
+            {
+                "url": "http://openlibrary.org/authors/OL26320A/J.R.R._Tolkien",
+                "name": "J.R.R. Tolkien"
+            }
+        ],
+        "identifiers": {
+            "isbn_10": ["0261103571"]
+        },
+        "publish_date": "1954"
+    }
+}

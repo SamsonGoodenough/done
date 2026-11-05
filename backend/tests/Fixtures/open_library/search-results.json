@@ -1,0 +1,24 @@
+{
+    "numFound": 3,
+    "start": 0,
+    "numFoundExact": true,
+    "docs": [
+        {
+            "key": "/works/OL27448W",
+            "title": "The Lord of the Rings",
+            "first_publish_year": 1954,
+            "cover_edition_key": "OL51694024M",
+            "edition_key": ["OL62536872M", "OL62445425M", "OL58959679M"]
+        },
+        {
+            "key": "/works/OL675783W",
+            "title": "Fantastic Mr. Fox",
+            "first_publish_year": 1970,
+            "edition_key": ["OL7353617M", "OL24229924M"]
+        },
+        {
+            "key": "/works/OL999999W",
+            "title": "A Work With No Editions At All"
+        }
+    ]
+}
