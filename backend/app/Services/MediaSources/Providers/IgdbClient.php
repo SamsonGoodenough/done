@@ -10,10 +10,11 @@ use App\Services\MediaSources\MediaDetails;
 use App\Services\MediaSources\MediaSourceClient;
 use App\Services\MediaSources\SearchResult;
 use Closure;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Throwable;
+use Illuminate\Support\Facades\Log;
 
 /**
  * IGDB authenticates entirely through a Twitch Developer app's OAuth2
@@ -143,18 +144,24 @@ class IgdbClient implements MediaSourceClient
      * One retry with a short backoff, covering both a thrown connection
      * failure and a failed (5xx) response. A 4xx response (e.g. the 401 the
      * caller handles itself for a stale token) is returned as-is and
-     * doesn't consume the retry.
+     * doesn't consume the retry. Scoped to ConnectionException specifically
+     * (not a broad Throwable catch), matching TmdbClient/OpenLibraryClient's
+     * retry predicate.
      */
     private function withOneRetry(Closure $attempt): Response
     {
         try {
             $response = $attempt();
-        } catch (Throwable $e) {
+        } catch (ConnectionException $e) {
+            // Logged here because it would otherwise be lost entirely: if
+            // the retry below also fails, only that second exception
+            // becomes the thrown exception's "previous".
+            Log::warning('IGDB request failed, retrying once.', ['exception' => $e->getMessage()]);
             usleep(200_000);
 
             try {
                 return $attempt();
-            } catch (Throwable $e2) {
+            } catch (ConnectionException $e2) {
                 throw MediaSourceUnavailableException::for(MediaSource::GamesApi, $e2);
             }
         }
@@ -164,7 +171,7 @@ class IgdbClient implements MediaSourceClient
 
             try {
                 $response = $attempt();
-            } catch (Throwable $e) {
+            } catch (ConnectionException $e) {
                 throw MediaSourceUnavailableException::for(MediaSource::GamesApi, $e);
             }
         }
