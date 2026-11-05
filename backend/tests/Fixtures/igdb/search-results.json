@@ -1,0 +1,16 @@
+[
+    {
+        "id": 1942,
+        "name": "The Witcher 3: Wild Hunt",
+        "cover": {
+            "id": 89386,
+            "url": "//images.igdb.com/igdb/image/upload/t_thumb/co1wyy.jpg"
+        },
+        "first_release_date": 1431993600
+    },
+    {
+        "id": 7346,
+        "name": "The Witcher 3: Wild Hunt - Blood and Wine",
+        "first_release_date": 1465344000
+    }
+]

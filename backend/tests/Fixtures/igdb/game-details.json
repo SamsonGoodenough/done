@@ -1,0 +1,29 @@
+[
+    {
+        "id": 1942,
+        "name": "The Witcher 3: Wild Hunt",
+        "cover": {
+            "id": 89386,
+            "url": "//images.igdb.com/igdb/image/upload/t_thumb/co1wyy.jpg"
+        },
+        "first_release_date": 1431993600,
+        "summary": "As war rages on throughout the Northern Realms, you take on the greatest contract of your life — tracking down the Child of Prophecy.",
+        "platforms": [
+            {"id": 6, "name": "PC (Microsoft Windows)"},
+            {"id": 48, "name": "PlayStation 4"},
+            {"id": 49, "name": "Xbox One"}
+        ],
+        "involved_companies": [
+            {
+                "developer": false,
+                "publisher": true,
+                "company": {"id": 101, "name": "Bandai Namco Entertainment"}
+            },
+            {
+                "developer": true,
+                "publisher": false,
+                "company": {"id": 102, "name": "CD Projekt Red"}
+            }
+        ]
+    }
+]

@@ -24,7 +24,7 @@ A Vue 3 SPA (built by Vite into static assets) served by nginx, which also rever
                                      │
                           ┌──────────┴──────────┐
                           │  External APIs       │
-                          │  TMDB / RAWG / Open  │
+                          │  TMDB / IGDB / Open  │
                           │  Library             │
                           └──────────────────────┘
 ```
@@ -60,7 +60,7 @@ Dockerfiles are centralized under `docker/` rather than living inside `frontend/
 - **`queue-worker`** — a second container running the same Laravel codebase as `php-fpm` but executing `php artisan queue:work` instead of serving requests. Handles sending invite emails and (optionally) periodic metadata refresh jobs, so these don't block web requests.
 - **`redis`** *(optional)* — if the database queue driver proves too slow or a cache layer is wanted later; not required for v1 at this scale (Laravel's database queue driver is fine for low volume).
 
-`compose.yml` at the repo root defines all of these plus shared networks and volumes; a `.env` file (not committed) holds secrets: DB credentials, `APP_KEY`, TMDB/RAWG API keys, mail credentials. A named volume (e.g. `avatars`) is mounted into both `php-fpm` (to write uploads) and `nginx` (to serve them) for user-uploaded avatar images.
+`compose.yml` at the repo root defines all of these plus shared networks and volumes; a `.env` file (not committed) holds secrets: DB credentials, `APP_KEY`, TMDB API key, IGDB/Twitch client credentials, mail credentials. A named volume (e.g. `avatars`) is mounted into both `php-fpm` (to write uploads) and `nginx` (to serve them) for user-uploaded avatar images.
 
 ## Auth mechanism
 

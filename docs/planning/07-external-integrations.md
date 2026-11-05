@@ -8,15 +8,19 @@ Metadata is pulled from external APIs from v1 (per planning decision), one per m
 - **Data pulled:** title, release/air date, overview, poster path, runtime (movies) / seasons & episode counts & status (TV), genres.
 - **Auth:** single API key (v3) or bearer token (v4), no OAuth dance.
 
-## Games — RAWG (recommended) vs IGDB
+## Games — IGDB (chosen; supersedes an earlier RAWG recommendation)
 
-| | RAWG | IGDB |
+| | IGDB | RAWG (rejected) |
 |---|---|---|
-| Auth | Single API key | OAuth2 client-credentials flow via Twitch Developer account |
-| Data depth | Good — covers most mainstream + indie titles, platforms, release dates, covers | Deeper (more metadata fields, more actively maintained by gaming-industry contributors), but more auth ceremony |
-| Setup effort | Low | Higher (must register a Twitch app to get IGDB credentials) |
+| Auth | OAuth2 client-credentials flow via Twitch Developer account (2FA required, Client ID/Secret exchanged for a cached bearer token) | Single API key |
+| Data depth | All five fields this project needs (title, release date, cover, platforms, developer) confirmed directly from current official docs | Comparable on paper, but see reliability below |
+| Setup effort | Higher — register a Twitch Developer app, implement token fetch/cache | Low |
+| Rate limit | 4 req/s, 8 concurrent (documented) | Unconfirmed — its own docs were unreachable during the research that led to this switch |
+| Reliability | A couple of dated, resolved incidents on a third-party monitor; the Twitch OAuth dependency has a real public status page | Undocumented multi-day outages (e.g. a full-day blackout on 2024-05-05) with no status page and no public incident communication |
 
-**Recommendation: RAWG for v1.** The simpler single-key auth matches the project's small-scale, low-ops posture — no reason to add an OAuth client-credentials flow (and a Twitch developer account dependency) for marginal data-depth gains. IGDB is worth revisiting if RAWG's coverage proves lacking for specific titles the group tracks.
+**RAWG was the original v1 recommendation** (single-key auth, matching the project's small-scale, low-ops posture) but was dropped after RAWG proved unreliable in practice: its site, live API, and docs all went down simultaneously (Cloudflare 522) during the research that triggered this change, on top of a previously documented full-day outage with zero public acknowledgement. GameVault, a comparable self-hosted game-library project, hit the same wall and migrated to IGDB for the same reason.
+
+**Recommendation: IGDB.** The extra OAuth setup ceremony (Twitch Developer account, 2FA, client-credentials token fetch/cache) is a one-time implementation cost, not recurring ops burden, and is exactly the kind of vendor-specific detail [ADR 0001](../adr/0001-media-source-integration-architecture.md) already isolates behind a swappable client binding — the `games_api` capability name in `media_items.source` doesn't change. Full research, citations, and the runner-up (Giant Bomb) is in [`docs/research/games-api-alternatives-to-rawg.md`](../research/games-api-alternatives-to-rawg.md); see [ADR 0002](../adr/0002-games-metadata-vendor-igdb-over-rawg.md) for the decision record.
 
 ## Books — Open Library (recommended) vs Google Books
 
@@ -41,4 +45,4 @@ Items added manually by a Manager/Admin (no `external_id`, `source = manual`) ar
 
 ## API keys & config
 
-TMDB, RAWG, and (if added) Google Books API keys are configured via environment variables (`.env`, injected through Docker Compose), never committed to the repo. See [08-architecture-deployment.md](08-architecture-deployment.md).
+TMDB's API key, IGDB's Twitch Client ID/Secret, and (if added) a Google Books API key are configured via environment variables (`.env`, injected through Docker Compose), never committed to the repo. See [08-architecture-deployment.md](08-architecture-deployment.md).

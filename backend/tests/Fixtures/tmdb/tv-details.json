@@ -1,0 +1,14 @@
+{
+    "id": 1399,
+    "name": "Game of Thrones",
+    "first_air_date": "2011-04-17",
+    "poster_path": "/u3bZgnGQ9T01sWNhyveQz0wH0Hl.jpg",
+    "overview": "Seven noble families fight for control of the mythical land of Westeros.",
+    "number_of_seasons": 8,
+    "number_of_episodes": 73,
+    "status": "Ended",
+    "genres": [
+        {"id": 18, "name": "Drama"},
+        {"id": 10765, "name": "Sci-Fi & Fantasy"}
+    ]
+}
