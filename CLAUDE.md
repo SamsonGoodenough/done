@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository status
 
-The Docker Compose dev environment is scaffolded: a bare Laravel app in `backend/`, a bare Vue app in `frontend/`, and nginx/php-fpm/postgres/queue-worker/mailhog containers wired together. No feature code has been written yet (no custom migrations, models, routes, auth, or components beyond framework defaults). Follow the phase order in `docs/planning/09-roadmap.md` for what to build next (Phase 1: auth foundation).
+The Docker Compose dev environment is scaffolded: a bare Laravel app in `backend/`, a bare Vue app in `frontend/`, and nginx/php-fpm/postgres/queue-worker/mailhog containers wired together. Phase 1 backend work (extended `User` model, `Invitation` model/migration, `spatie/laravel-permission` installed) is in progress on `feature/phase1-user-invitation-models`, not yet merged. See `docs/planning/roadmap.html` (generated from `09-roadmap.md`) for the current phase-by-phase status — keep it current with the `update-roadmap` skill rather than hand-editing the status by feel.
 
 ### Running the stack
 
@@ -28,7 +28,10 @@ First-time setup after `docker compose up -d`, since migrations don't run automa
 
 ```
 docker compose exec php-fpm php artisan migrate
+docker compose exec php-fpm php artisan db:seed --class=RolePermissionSeeder
 ```
+
+The seeder step matters: it creates the Admin/Manager/Member roles that `spatie/laravel-permission` expects to already exist. Skipping it and going straight to bootstrapping the first admin (`php artisan app:create-admin`, see Phase 1 in the roadmap) fails with a clear error telling you to run this first.
 
 ### Common commands
 
@@ -59,6 +62,20 @@ This has been built and smoke-tested for the dev path only so far; the prod path
 - **Never co-author commits.** Do not add a Co-Authored-By trailer or a Claude session link to any commit in this repo. Commits should read as written entirely by the user, with no attribution to Claude.
 - **Branch naming.** New feature work happens on a branch named `feature/<short-description>`, not directly on `main`. Fixes for a tracked GitHub issue happen on `issue/<short-description>` (including the issue number is fine, e.g. `issue/42-login-redirect-loop`). Planning-doc-only changes with no code are the exception and can still go straight to `main`.
 
+## Agent skills
+
+### Issue tracker
+
+Issues live in this repo's GitHub Issues (`gh` CLI). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default triage label vocabulary (needs-triage, needs-info, ready-for-agent, ready-for-human, wontfix). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout: `GLOSSARY.md` + `docs/adr/` at the repo root (neither exists yet; created lazily by `/domain-modeling`). See `docs/agents/domain.md`.
+
 ## What "Done" is
 
 An invite-only, self-hosted tracker for movies, TV shows, games, and books for a small trusted group (well under 50 users). Rate 0 to 5 with half stars, write reviews with spoiler flags, favourite, log rewatches diary-style, tag friends who shared the experience, and keep a backlog. Full product framing is in `README.md` and `docs/planning/01-overview.md`.
@@ -76,7 +93,7 @@ An invite-only, self-hosted tracker for movies, TV shows, games, and books for a
 | `06-roles-permissions.md` | Admin/Manager/Member matrix + invite flow |
 | `07-external-integrations.md` | TMDB, RAWG, Open Library: sync/caching strategy |
 | `08-architecture-deployment.md` | Docker Compose service layout, nginx, Sanctum auth, backups |
-| `09-roadmap.md` | The 12-phase build order, backend first, frontend from Phase 8 |
+| `09-roadmap.md` | The 12-phase build order, backend first, frontend from Phase 8. Per-phase status/checklist kept current by the `update-roadmap` skill; browsable at `roadmap.html`. |
 | `10-open-questions.md` | Open items and assumptions that still need confirming |
 | `11-design-system.md` | The chosen visual language ("Passport & Postmark") |
 
@@ -94,6 +111,7 @@ Key structural decisions worth knowing before touching the data model (`04-data-
 - **No separate episode-progress table.** TV shows log at whole-show, season, or single-episode granularity through `log_entries` itself (`episode_id` / `season_number`, both nullable), with rating/review optional at every level. A log entry with no rating is what marks an episode watched; there's no separate watched-checkbox table.
 - **Roles (Admin/Manager/Member) are not the same thing as friends/visibility.** Comments, reactions, Tag Friends, and profile visibility apply equally regardless of role; only catalog-editing, invites, and moderation are role-gated.
 - **Theming.** Colors must live in exactly one canonical file (see the "Theming architecture" section of `02-tech-stack.md`) that feeds both Vuetify's theme config and custom components. Never hardcode a hex value or duplicate a color in a second Sass variable file.
+- **Timestamps and soft deletes are the default on every model.** `created_at`/`updated_at` plus `deleted_at` (Eloquent `SoftDeletes`), unless `04-data-model.md` says otherwise. Current exceptions: `users` (has `deactivated_at` instead), the `log_entry_participants` pivot, and `reactions`.
 
 ## Continuing the planning docs
 

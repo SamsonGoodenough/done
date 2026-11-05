@@ -1,0 +1,92 @@
+/*
+  Done — design tokens
+  Source: "Done — App Prototype" design canvas (Shelf / Detail / Activity,
+  mobile + desktop). Fuses the earlier "Stub & Stamp" ink-stamp/ticket
+  motifs with a grainy, cinematic, large-serif direction.
+
+  Drop this file in and import it once (e.g. resources/css/design-tokens.css
+  in a Laravel app, or your global stylesheet entry point). Every value
+  below is used verbatim across all six prototype screens.
+*/
+
+:root {
+  /* Fonts — all three loaded from Google Fonts in the prototype:
+     https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400;1,6..96,500&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap */
+  --font-serif: 'Bodoni Moda', 'Times New Roman', serif;   /* display / titles */
+  --font-sans: 'Archivo', -apple-system, 'Segoe UI', sans-serif; /* body copy */
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace; /* labels, meta, stamps */
+
+  /* Dark / cinematic surface — hero art, poster grids, nav */
+  --bg: #120E0A;
+  --bg-2: #1C1611;          /* card/nav surface on dark */
+  --ink: #F4EEDF;           /* primary text on dark */
+  --ink-dim: #B7AC97;       /* secondary text on dark */
+  --hair-dark: rgba(244, 238, 223, 0.16); /* hairline borders on dark */
+
+  /* Light / paper surface — reading sections: reviews, comments */
+  --paper: #F6F1E6;
+  --paper-ink: #1F2A44;     /* primary text on paper (navy-black) */
+  --paper-dim: #6B6152;     /* secondary text on paper only — do NOT use on --bg, fails contrast */
+  --paper-hair: rgba(31, 42, 68, 0.14); /* hairline borders on paper */
+
+  /* Ink-stamp brand colors — carried over from the earlier Stub & Stamp
+     exploration; used for status tags, postmark rating badges, reactions */
+  --primary: #B23A2E;  /* oxblood red — "Completed" status, rating stamp ring, heart reaction */
+  --accent: #B8892F;   /* mustard gold — "In Progress" status, thumbs-up reaction, hero kicker */
+  --teal: #6E9491;     /* secondary accent — "On Hold" status, fire/flame reaction */
+}
+
+/* Film-grain overlay — stack this on any dark hero/poster surface.
+   Wrap the element in position:relative and drop <div class="grain"></div>
+   as its first child, or apply directly as ::before on a relative parent. */
+.grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.45;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.35 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Postmark rating stamp — circular ink-stamp badge, double ring, rotated.
+   See docs/planning/11-design-system.md for the full anatomy + usage. */
+.stamp-postmark {
+  position: relative;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 1.5px solid var(--primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-9deg);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
+}
+.stamp-postmark::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px dashed color-mix(in srgb, var(--primary) 55%, transparent);
+  border-radius: 50%;
+}
+
+/* Ticket-perforation section divider — dashed hairline, use inside a
+   --paper section (uses --paper-hair; swap the color if used on dark). */
+.tear {
+  border: none;
+  border-top: 1.5px dashed var(--paper-hair);
+  margin: 1.75rem 0;
+}
+
+/* Rotated status tag — mono, uppercase, bordered pill, currentColor —
+   set `color` to --primary/--accent/--ink-dim/--teal per status. */
+.status-tag {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.18rem 0.55rem;
+  border: 1px solid currentColor;
+  display: inline-block;
+  transform: rotate(-3deg);
+}

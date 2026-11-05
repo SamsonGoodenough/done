@@ -12,9 +12,9 @@ Index of the planning documents for **Done**, an invite-only, self-hosted tracke
 | [06-roles-permissions.md](06-roles-permissions.md) | Admin / Manager / Member roles, permission matrix, invite flow |
 | [07-external-integrations.md](07-external-integrations.md) | TMDB, games API, books API — choices and caching strategy |
 | [08-architecture-deployment.md](08-architecture-deployment.md) | Docker Compose layout, nginx, auth mechanism, backups |
-| [09-roadmap.md](09-roadmap.md) | Phased build plan |
+| [09-roadmap.md](09-roadmap.md) | Phased build plan, with a per-phase status/checklist kept current by the `update-roadmap` skill. Browsable dashboard view at [`roadmap.html`](roadmap.html). |
 | [10-open-questions.md](10-open-questions.md) | Decisions still open, assumptions made so far |
-| [11-design-system.md](11-design-system.md) | Chosen visual style ("Stub & Stamp" → "Passport & Postmark"): colors, type, layout motifs, iconography, nav structure. Live reference mockup at [`mockups/passport-and-postmark.html`](mockups/passport-and-postmark.html). |
+| [11-design-system.md](11-design-system.md) | Chosen visual style ("Stub & Stamp" → "Passport & Postmark" → "Stub & Stamp, Cinematic Cut"): colors, type, layout motifs, iconography, nav structure. Reference exports at [`mockups/screens/`](mockups/screens) and [`mockups/design-tokens.css`](mockups/design-tokens.css). |
 
 ## Decisions locked in during planning
 
@@ -30,7 +30,7 @@ Index of the planning documents for **Done**, an invite-only, self-hosted tracke
 - **User removal:** soft-deactivate only (blocks login) — historical content (reviews, comments, reactions, tags) is always retained, never deleted or reassigned.
 - **PWA:** installable (add-to-homescreen, cached static assets), no offline data entry in v1.
 - **Theming:** light + dark mode both supported from v1.
-- **Visual style:** "Stub & Stamp," refined into the "Passport & Postmark" execution — a ticket-stub/archive aesthetic (stamp red + gold on near-white kraft paper, monospace ticket-printer type) with postmark ratings, a favourite heart-chain background stamp, and an "All Activity" / "My Activity" swipeable-carousel page structure. See [11-design-system.md](11-design-system.md) and the saved mockup at `docs/planning/mockups/passport-and-postmark.html`.
+- **Visual style:** "Stub & Stamp," refined into "Passport & Postmark," then revisited as "Stub & Stamp, Cinematic Cut" — the current direction: near-black, film-grain cinematic surfaces (large serif display type) carrying the original ink-stamp motifs (postmark ratings, ticket-perforation dividers, spoiler masks) in the same oxblood/mustard palette, alternating with clean paper-toned sections for review/comment text. The favourite heart-chain stamp and the "All Activity" / "My Activity" carousel structure carry over from Passport & Postmark but aren't yet re-validated against the new visual system. See [11-design-system.md](11-design-system.md) and the reference exports at `docs/planning/mockups/screens/` and `docs/planning/mockups/design-tokens.css`.
 - **Theming architecture:** theme colors live in one canonical file that feeds both Vuetify's theme config and the custom/bespoke components (via Vuetify's runtime CSS custom properties) — one place to edit, no hand-duplicated color values. See "Theming architecture" in [02-tech-stack.md](02-tech-stack.md).
 - **Bottom nav:** 5 slots — Shelf, Search, a raised center "+" (fast review logging), Activity, Profile. The "+" is deliberately the most prominent action in the bar.
 - **Backlog:** included in v1 (planned / in-progress / completed / dropped / on-hold).
@@ -38,3 +38,4 @@ Index of the planning documents for **Done**, an invite-only, self-hosted tracke
 - **Roles:** Admin, Manager, Member. Managers can manually add media that isn't found in the external databases.
 - **Access:** invite-only. Admins/Managers send a tokenized email invite link — no public signup.
 - **Deployment:** self-hosted, single VPS, Docker Compose, small scale (friends/family, well under 50 users).
+- **Timestamps & soft deletes:** every table gets `created_at`/`updated_at` and soft deletes (`deleted_at`) by default. Exceptions: `users` (already has `deactivated_at` for the same purpose), the `log_entry_participants` pivot, and `reactions` (both plain create/delete, nothing to update or soft-delete). See [04-data-model.md](04-data-model.md).
