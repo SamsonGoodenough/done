@@ -6,6 +6,7 @@ use App\Enums\ShelfStatus;
 use App\Models\LogEntry;
 use App\Models\User;
 use App\Models\UserMedia;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\DB;
  */
 class LogEntryRecorder
 {
+    private const UNIQUE_VIOLATION = '23505';
+
     /**
      * @param  array<int, int>  $taggedUserIds
      */
@@ -76,7 +79,22 @@ class LogEntryRecorder
             ];
 
             if ($existing === null) {
-                return UserMedia::create($attributes);
+                try {
+                    // Nested DB::transaction() (we're already inside the
+                    // outer one from record()) so a unique-violation here
+                    // only rolls back to a savepoint, not the whole
+                    // transaction, letting us recover and keep going.
+                    return DB::transaction(fn () => UserMedia::create($attributes));
+                } catch (QueryException $e) {
+                    if ($e->getCode() !== self::UNIQUE_VIOLATION) {
+                        throw $e;
+                    }
+
+                    return UserMedia::withTrashed()
+                        ->where('user_id', $userId)
+                        ->where('media_item_id', $mediaItemId)
+                        ->firstOrFail();
+                }
             }
 
             $existing->fill($attributes);
