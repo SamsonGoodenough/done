@@ -81,6 +81,31 @@ class UserMediaControllerTest extends TestCase
         $this->assertDatabaseHas('user_media', ['id' => $first, 'status' => 'in_progress', 'deleted_at' => null]);
     }
 
+    public function test_reposting_to_an_already_active_shelf_entry_leaves_it_unchanged(): void
+    {
+        $user = User::factory()->create();
+        $mediaItem = $this->mediaItem();
+
+        $userMedia = UserMedia::create([
+            'user_id' => $user->id,
+            'media_item_id' => $mediaItem->id,
+            'status' => 'completed',
+            'is_favourite' => true,
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/api/user-media', [
+            'media_item_id' => $mediaItem->id,
+            'status' => 'planned',
+        ]);
+
+        $response->assertOk()->assertJsonPath('data.id', $userMedia->id);
+        $this->assertDatabaseHas('user_media', [
+            'id' => $userMedia->id,
+            'status' => 'completed',
+            'is_favourite' => true,
+        ]);
+    }
+
     public function test_update_changes_status_without_ordering_constraints(): void
     {
         $user = User::factory()->create();

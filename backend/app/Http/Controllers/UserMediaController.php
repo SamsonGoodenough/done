@@ -44,14 +44,16 @@ class UserMediaController extends Controller
 
     public function store(StoreUserMediaRequest $request, ShelfEntryManager $shelfEntryManager): JsonResponse
     {
-        $userMedia = $shelfEntryManager->addToShelf(
+        $result = $shelfEntryManager->addToShelf(
             $request->user()->id,
             $request->mediaItemId(),
             $request->status(),
             $request->isFavourite(),
         );
 
-        return UserMediaResource::make($userMedia->load('mediaItem'))->response()->setStatusCode(201);
+        return UserMediaResource::make($result->userMedia->load('mediaItem'))
+            ->response()
+            ->setStatusCode($result->wasNew ? 201 : 200);
     }
 
     public function update(UpdateUserMediaRequest $request, UserMedia $userMedia): UserMediaResource
