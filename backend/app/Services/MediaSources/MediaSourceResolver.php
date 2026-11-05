@@ -2,6 +2,7 @@
 
 namespace App\Services\MediaSources;
 
+use App\Enums\MediaSource;
 use App\Enums\MediaType;
 use App\Services\MediaSources\Providers\IgdbClient;
 use App\Services\MediaSources\Providers\OpenLibraryClient;
@@ -25,6 +26,14 @@ class MediaSourceResolver
         MediaType::Book->value => OpenLibraryClient::class,
     ];
 
+    /** @var array<string, MediaSource> */
+    private array $sources = [
+        MediaType::Movie->value => MediaSource::Tmdb,
+        MediaType::TvShow->value => MediaSource::Tmdb,
+        MediaType::Game->value => MediaSource::GamesApi,
+        MediaType::Book->value => MediaSource::BooksApi,
+    ];
+
     public function __construct(private readonly Container $container) {}
 
     public function forType(MediaType $type): MediaSourceClient
@@ -33,5 +42,16 @@ class MediaSourceResolver
             ?? throw new RuntimeException("No MediaSourceClient registered for media type [{$type->value}].");
 
         return $this->container->make($class);
+    }
+
+    /**
+     * Which MediaSource backs a type, without instantiating or calling its
+     * client. Lets a caller check "is this already cataloged?" before
+     * paying for an external API round trip.
+     */
+    public function sourceForType(MediaType $type): MediaSource
+    {
+        return $this->sources[$type->value]
+            ?? throw new RuntimeException("No MediaSource registered for media type [{$type->value}].");
     }
 }

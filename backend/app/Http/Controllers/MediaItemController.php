@@ -51,6 +51,23 @@ class MediaItemController extends Controller
     public function store(StoreMediaItemRequest $request): JsonResponse
     {
         $type = $request->type();
+
+        // Already-cataloged items are the common case on a retry or
+        // double-submit; check locally before paying for an external API
+        // round trip whose result MediaItemCataloger would just discard.
+        // A soft-deleted match isn't excluded here (Eloquent's default
+        // scope already hides it), so it still falls through to the full
+        // fetch-and-restore path below.
+        $existing = MediaItem::query()
+            ->where('type', $type->value)
+            ->where('source', $this->resolver->sourceForType($type)->value)
+            ->where('external_id', $request->externalId())
+            ->first();
+
+        if ($existing !== null) {
+            return MediaItemResource::make($existing)->response()->setStatusCode(200);
+        }
+
         $details = $this->resolver->forType($type)->details($request->externalId(), $type);
 
         $result = $this->cataloger->catalogFromSource($details);
