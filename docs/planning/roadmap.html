@@ -289,8 +289,8 @@
     <p class="desc">Where "Done" actually stands right now, phase by phase — regenerated from <code>docs/planning/09-roadmap.md</code> by the <code>update-roadmap</code> skill. Treat the markdown file as the source of truth; this page is just a nicer way to read it.</p>
     <!-- META:START -->
     <div class="meta">
-      <span>Generated 2026-08-31</span>
-      <span>Branch <code>feature/phase1-user-invitation-models</code></span>
+      <span>Generated 2026-11-05</span>
+      <span>Branch <code>feature/phase2-media-catalog</code></span>
       <span>Source <code>docs/planning/09-roadmap.md</code></span>
     </div>
     <!-- META:END -->
@@ -298,18 +298,18 @@
 
   <!-- STATS:START -->
   <div class="stats">
-    <div class="stat complete"><div class="num">1</div><div class="label">Phase complete</div></div>
-    <div class="stat progress"><div class="num">1</div><div class="label">Phase in progress</div></div>
-    <div class="stat"><div class="num">11</div><div class="label">Phases not started</div></div>
-    <div class="stat"><div class="num">1 / 48</div><div class="label">Tasks merged to main</div></div>
+    <div class="stat complete"><div class="num">2</div><div class="label">Phases complete</div></div>
+    <div class="stat progress"><div class="num">2</div><div class="label">Phases in progress</div></div>
+    <div class="stat"><div class="num">9</div><div class="label">Phases not started</div></div>
+    <div class="stat"><div class="num">5 / 48</div><div class="label">Tasks merged to main</div></div>
   </div>
   <!-- STATS:END -->
 
   <nav class="phase-nav" aria-label="Jump to phase">
     <a href="#phase-0" class="complete">P0</a>
-    <a href="#phase-1" class="progress">P1</a>
-    <a href="#phase-2">P2</a>
-    <a href="#phase-3">P3</a>
+    <a href="#phase-1" class="complete">P1</a>
+    <a href="#phase-2" class="progress">P2</a>
+    <a href="#phase-3" class="progress">P3</a>
     <a href="#phase-4">P4</a>
     <a href="#phase-5">P5</a>
     <a href="#phase-6">P6</a>
@@ -332,54 +332,58 @@
     <p class="callout" style="margin-top:0;">Docs in this folder. Output: agreed feature scope, data model, tech choices.</p>
   </section>
 
-  <section class="phase is-progress" id="phase-1">
+  <section class="phase is-complete" id="phase-1">
     <div class="phase-head">
       <span class="phase-tag">PHASE 1</span>
       <h2 class="phase-title">Backend foundation</h2>
-      <span class="phase-frac">1 / 5</span>
+      <span class="phase-frac">5 / 5</span>
     </div>
-    <p class="phase-status progress">In Progress</p>
-    <p class="phase-note">Backend work so far lives on <code>feature/phase1-user-invitation-models</code> (not yet merged, no PR opened yet) — most of it is still uncommitted, pending review.</p>
+    <p class="phase-status complete">Complete</p>
+    <p class="phase-note">Merged to main via <a href="https://github.com/SamsonGoodenough/done/pull/1">PR #1</a> on 2026-11-05.</p>
     <ul class="checklist">
       <li class="done"><span class="box">✓</span><span class="item-text"><span>Repo layout (frontend/, backend/, docker/, compose.yml), Laravel app scaffold, Docker Compose skeleton (nginx + php-fpm + postgres)</span><span class="evidence">Merged to main. Also includes queue-worker and mailhog, beyond the original baseline.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>users, invitations migrations</span><span class="evidence">Built and verified, uncommitted on the open branch. Also adds avatar_path/profile_visibility/deactivated_at and soft deletes beyond the base spec.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Sanctum SPA auth (login/logout, session cookie)</span><span class="evidence">Built and verified end-to-end through nginx (csrf-cookie priming, login, /api/user, logout, rate-limited lockout, deactivated-user block) plus automated feature tests; uncommitted on the open branch.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>spatie/laravel-permission roles/permissions wired up (Admin/Manager/Member)</span><span class="evidence">Roles and a first permission batch (send-invitations, change-user-role, deactivate-user) seeded and enforced via policy/gate checks; the latter two aren't consumed by an endpoint yet (Phase 10). Uncommitted on the open branch.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Invitation flow: send, accept, expire; first-admin bootstrap command</span><span class="evidence">Full flow built (send/accept/revoke/resend, Manager-can-only-invite-Member rule, duplicate guards, revoke as soft delete, email via queued Mailable) plus the guarded app:create-admin command; verified via curl and 16 passing feature tests. Uncommitted on the open branch.</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>users, invitations migrations</span><span class="evidence">Merged to main. Also adds avatar_path/profile_visibility/deactivated_at and soft deletes beyond the base spec.</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>Sanctum SPA auth (login/logout, session cookie)</span><span class="evidence">Merged to main. Verified end-to-end through nginx (csrf-cookie priming, login, /api/user, logout, rate-limited lockout on both the wrong-password and deactivated-account paths) plus automated feature tests.</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>spatie/laravel-permission roles/permissions wired up (Admin/Manager/Member)</span><span class="evidence">Merged to main. Roles and a first permission batch (send-invitations, change-user-role, deactivate-user) seeded and enforced via policy/gate checks; the latter two aren't consumed by an endpoint yet (Phase 10).</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>Invitation flow: send, accept, expire; first-admin bootstrap command</span><span class="evidence">Merged to main. Full flow (send/accept/revoke/resend, Manager-can-only-invite-Member rule, duplicate guards, revoke as soft delete, email via queued Mailable, now encrypted while queued) plus the guarded app:create-admin command (also race-safe against concurrent runs); verified via curl and 30 passing feature tests.</span></span></li>
     </ul>
-    <p class="callout">No frontend yet beyond a minimal login page to prove auth end-to-end — a boundary for this phase, not a task to check off.</p>
+    <p class="callout">No frontend was built this phase beyond a minimal login page to prove auth end-to-end, that's Phase 8.</p>
     <p class="callout">Also fixed in passing: PHPUnit's env overrides weren't taking effect, so tests were silently running against the real dev Postgres database. Fixed with an explicit test bootstrap plus a hard guard that refuses to run unless the DB connection is sqlite.</p>
+    <p class="callout">A full code review of PR #1 (security + correctness, high effort) found and fixed five more real bugs before merge: resend() couldn't revive an already-expired invitation (the main case it exists for), accept() wasn't transactional, invited_by was silently missing from every invitation API response, login rate-limiting had a gap on the deactivated-account path, and the first-admin bootstrap had a check-then-create race (closed with Cache::lock() since the test suite runs on sqlite). Also set up this repo's docs/agents/*.md configuration for the engineering skill suite, landed in the same PR.</p>
   </section>
 
-  <section class="phase" id="phase-2">
+  <section class="phase is-progress" id="phase-2">
     <div class="phase-head">
       <span class="phase-tag">PHASE 2</span>
       <h2 class="phase-title">Media catalog + external integrations</h2>
       <span class="phase-frac">0 / 6</span>
     </div>
-    <p class="phase-status">Not Started</p>
+    <p class="phase-status progress">In Progress</p>
+    <p class="phase-note">Branch <code>feature/phase2-media-catalog</code> created off main, not yet merged, no PR opened — Phase 3's work has also landed on this same branch rather than a new one (not yet split out). Design locked in via a grilling session (see <a href="../adr/0001-media-source-integration-architecture.md">ADR 0001</a>); mid-design, a games-metadata vendor swap (RAWG → IGDB) happened after RAWG proved unreliable in practice (see <a href="../adr/0002-games-metadata-vendor-igdb-over-rawg.md">ADR 0002</a> and the <a href="../research/games-api-alternatives-to-rawg.md">research notes</a>). TMDB_API_KEY and the IGDB/Twitch credentials are all obtained and set in backend/.env via scripts/setup-media-api-keys.sh. Everything below is uncommitted on this branch.</p>
     <ul class="checklist">
-      <li><span class="box"></span><span class="item-text"><span>media_items migration and model</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>TMDB integration (movies + TV search, metadata copy-in, plus episode data for TV — see Phase 4)</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>RAWG integration (games)</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Open Library integration (books)</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Manual media entry (Manager/Admin only)</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Basic search-and-add flow in the API</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>media_items migration and model</span><span class="evidence">Migration applies cleanly against Postgres with the (source, external_id) partial unique index enforced — confirmed a live duplicate is rejected, a soft-deleted match restores, and two manual/null-external_id rows coexist; MediaType/MediaSource enum casts confirmed via tinker. Uncommitted on the open branch.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>TMDB integration (movies + TV search, metadata copy-in, plus episode data for TV — see Phase 4)</span><span class="evidence">Built and verified: TmdbClient implements the shared MediaSourceClient contract (movie/TV search + details, genre extraction straight from TMDB's detail response, 404-vs-unavailable mapping); 8 passing unit tests. Caught and fixed a real Http::retry() gotcha: its first argument is total attempts, not retry count, so retry(1, ...) is actually zero retries.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>IGDB integration (games)</span><span class="evidence">Switched from the originally planned RAWG after reliability concerns (see ADR 0002). Built and verified: IgdbClient (Twitch OAuth2 client-credentials flow, token caching with 401-triggered refresh, Apicalypse queries, platforms/developer extraction); 6 passing unit tests.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>Open Library integration (books)</span><span class="evidence">Built and verified: OpenLibraryClient, cataloging at edition granularity (not "work"), free-text publish_date normalization that specifically guards against PHP's strtotime("1954") silently returning today's date; 7 passing unit tests.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>Manual media entry (Manager/Admin only)</span><span class="evidence">Built and verified: POST /api/media-items/manual, new create-media-item permission granted to Admin+Manager, minimal-required-fields validation (type + title only); covered by feature tests.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>Basic search-and-add flow in the API</span><span class="evidence">Built and verified: GET /api/media-items/search (flags already-cataloged results, per-user rate limit), POST /api/media-items (dedup/restore-with-metadata-refresh), GET /api/media-items/{id} show endpoint, uniform 404/503 exception rendering; covered by feature tests.</span></span></li>
     </ul>
   </section>
 
-  <section class="phase" id="phase-3">
+  <section class="phase is-progress" id="phase-3">
     <div class="phase-head">
       <span class="phase-tag">PHASE 3</span>
       <h2 class="phase-title">Shelf, diary, and backlog</h2>
       <span class="phase-frac">0 / 3</span>
     </div>
-    <p class="phase-status">Not Started</p>
+    <p class="phase-status progress">In Progress</p>
+    <p class="phase-note">Same open, unmerged branch as Phase 2 (see above). Design locked in via a second grilling session; one real cross-document contradiction surfaced and got resolved — see <a href="../adr/0003-shelf-status-and-logging-are-decoupled.md">ADR 0003</a>.</p>
     <ul class="checklist">
-      <li><span class="box"></span><span class="item-text"><span>user_media, log_entries, and log_entry_participants migrations and models</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Add to shelf (with status), change status, log a completion (with date/rating/review/spoiler/favourite/rewatch/tagged members)</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Shelf views by status; item detail page showing all log entries for that item</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>user_media, log_entries, and log_entry_participants migrations and models</span><span class="evidence">Built and verified: user_media gets the same soft-delete + restore-on-dedup pattern as media_items; log_entries deliberately excludes episode_id/season_number (deferred to Phase 4); log_entry_participants is a plain pivot, no model class.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>Add to shelf (with status), change status, log a completion (with date/rating/review/spoiler/favourite/rewatch/tagged members)</span><span class="evidence">Built and verified: ShelfEntryManager/LogEntryRecorder services back POST/GET/PATCH/DELETE /api/user-media and POST /api/log-entries — one transaction finds-or-creates the shelf entry, auto-sets status to Completed only on creation/restoration, computes is_rewatch with a manual-override escape hatch, writes is_favourite through from the log form, attaches tagged participants; 22 passing feature tests. Caught and fixed a real bug: a route-parameter casing mismatch in UpdateUserMediaRequest silently denied every update, including the rightful owner's, until a test caught it.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>Shelf views by status; item detail page showing all log entries for that item</span><span class="evidence">Built and verified: GET /api/user-media (status/type/favourite filters), GET /api/media-items/{id}/log-entries scoped to the caller's own diary only (Phase 5 will extend this).</span></span></li>
     </ul>
+    <p class="callout">87 backend tests passing in total as of this update.</p>
   </section>
 
   <section class="phase" id="phase-4">
