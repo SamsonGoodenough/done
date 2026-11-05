@@ -29,6 +29,7 @@ class RolePermissionSeeder extends Seeder
 
         $roles[UserRole::Manager->value]->syncPermissions([
             UserPermission::SendInvitations->value,
+            UserPermission::CreateMediaItem->value,
         ]);
 
         $roles[UserRole::Member->value]->syncPermissions([]);

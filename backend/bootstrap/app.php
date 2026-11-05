@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\MediaSources\Exceptions\MediaNotFoundException;
+use App\Services\MediaSources\Exceptions\MediaSourceUnavailableException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,4 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+
+        // One uniform error shape per exception type, regardless of which
+        // external source raised it. See
+        // docs/adr/0001-media-source-integration-architecture.md.
+        $exceptions->render(fn (MediaNotFoundException $e) => response()->json(['message' => $e->getMessage()], 404));
+        $exceptions->render(fn (MediaSourceUnavailableException $e) => response()->json(['message' => $e->getMessage()], 503));
     })->create();

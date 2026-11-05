@@ -12,4 +12,5 @@ enum UserPermission: string
     case SendInvitations = 'send-invitations';
     case ChangeUserRole = 'change-user-role';
     case DeactivateUser = 'deactivate-user';
+    case CreateMediaItem = 'create-media-item';
 }
