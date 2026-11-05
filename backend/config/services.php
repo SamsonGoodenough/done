@@ -35,4 +35,29 @@ return [
         ],
     ],
 
+    // Movie/TV metadata, see docs/planning/07-external-integrations.md
+    'tmdb' => [
+        'key' => env('TMDB_API_KEY'),
+        'base_url' => env('TMDB_BASE_URL', 'https://api.themoviedb.org/3'),
+        'image_base_url' => env('TMDB_IMAGE_BASE_URL', 'https://image.tmdb.org/t/p/w500'),
+    ],
+
+    // Game metadata (IGDB), authenticated via a Twitch Developer app's
+    // OAuth2 client-credentials flow, see docs/adr/0002-games-metadata-vendor-igdb-over-rawg.md
+    'twitch' => [
+        'client_id' => env('TWITCH_CLIENT_ID'),
+        'client_secret' => env('TWITCH_CLIENT_SECRET'),
+        'oauth_url' => env('TWITCH_OAUTH_URL', 'https://id.twitch.tv/oauth2/token'),
+    ],
+
+    'igdb' => [
+        'base_url' => env('IGDB_BASE_URL', 'https://api.igdb.com/v4'),
+    ],
+
+    // Book metadata — no API key required.
+    'open_library' => [
+        'base_url' => env('OPEN_LIBRARY_BASE_URL', 'https://openlibrary.org'),
+        'covers_base_url' => env('OPEN_LIBRARY_COVERS_BASE_URL', 'https://covers.openlibrary.org'),
+    ],
+
 ];
