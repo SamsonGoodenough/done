@@ -1,0 +1,15 @@
+{
+    "page": 1,
+    "results": [
+        {
+            "id": 1399,
+            "name": "Game of Thrones",
+            "first_air_date": "2011-04-17",
+            "poster_path": "/u3bZgnGQ9T01sWNhyveQz0wH0Hl.jpg",
+            "overview": "Seven noble families fight for control of the mythical land of Westeros.",
+            "genre_ids": [18, 10765]
+        }
+    ],
+    "total_results": 1,
+    "total_pages": 1
+}
