@@ -13,7 +13,7 @@ The full set of Media Items known to the app, independent of any individual user
 _Avoid_: Library, database
 
 **Source**:
-Where a Media Item's metadata originates: `tmdb`, `games_api` (RAWG), `books_api` (Open Library), or `manual`.
+Where a Media Item's metadata originates: `tmdb`, `games_api` (IGDB), `books_api` (Open Library), or `manual`.
 _Avoid_: Provider, API
 
 **External ID**:
