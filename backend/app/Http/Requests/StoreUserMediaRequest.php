@@ -26,20 +26,9 @@ class StoreUserMediaRequest extends FormRequest
     {
         return [
             'media_item_id' => ['required', Rule::exists('media_items', 'id')->whereNull('deleted_at')],
-            'status' => ['required', Rule::in($this->allowedStatuses())],
+            'status' => ['required', Rule::in(ShelfStatus::directlySettable())],
             'is_favourite' => ['nullable', 'boolean'],
         ];
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    private function allowedStatuses(): array
-    {
-        return array_map(
-            fn (ShelfStatus $status) => $status->value,
-            array_filter(ShelfStatus::cases(), fn (ShelfStatus $status) => $status !== ShelfStatus::Completed)
-        );
     }
 
     public function mediaItemId(): int

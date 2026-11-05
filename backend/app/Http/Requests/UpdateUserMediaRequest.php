@@ -25,20 +25,9 @@ class UpdateUserMediaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['sometimes', Rule::in($this->allowedStatuses())],
+            'status' => ['sometimes', Rule::in(ShelfStatus::directlySettable())],
             'is_favourite' => ['sometimes', 'boolean'],
         ];
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    private function allowedStatuses(): array
-    {
-        return array_map(
-            fn (ShelfStatus $status) => $status->value,
-            array_filter(ShelfStatus::cases(), fn (ShelfStatus $status) => $status !== ShelfStatus::Completed)
-        );
     }
 
     /**
