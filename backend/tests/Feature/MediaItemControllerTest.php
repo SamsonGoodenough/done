@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Enums\MediaSource;
 use App\Enums\MediaType;
 use App\Enums\UserRole;
+use App\Models\LogEntry;
 use App\Models\MediaItem;
 use App\Models\User;
+use App\Models\UserMedia;
 use App\Services\MediaSources\Exceptions\MediaNotFoundException;
 use App\Services\MediaSources\Exceptions\MediaSourceUnavailableException;
 use App\Services\MediaSources\MediaDetails;
@@ -240,5 +242,59 @@ class MediaItemControllerTest extends TestCase
             ->postJson('/api/media-items/manual', ['type' => 'book'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('title');
+    }
+
+    public function test_show_returns_the_item(): void
+    {
+        $mediaItem = MediaItem::create([
+            'type' => MediaType::Movie,
+            'source' => MediaSource::Tmdb,
+            'external_id' => '603',
+            'title' => 'The Matrix',
+        ]);
+
+        $this->actingAs($this->member())
+            ->getJson("/api/media-items/{$mediaItem->id}")
+            ->assertOk()
+            ->assertJsonPath('data.title', 'The Matrix');
+    }
+
+    public function test_show_404s_for_a_soft_deleted_item(): void
+    {
+        $mediaItem = MediaItem::create([
+            'type' => MediaType::Movie,
+            'source' => MediaSource::Tmdb,
+            'external_id' => '603',
+            'title' => 'The Matrix',
+        ]);
+        $mediaItem->delete();
+
+        $this->actingAs($this->member())
+            ->getJson("/api/media-items/{$mediaItem->id}")
+            ->assertNotFound();
+    }
+
+    public function test_log_entries_only_returns_the_callers_own_diary_for_that_item(): void
+    {
+        $user = $this->member();
+        $other = $this->member();
+        $mediaItem = MediaItem::create([
+            'type' => MediaType::Movie,
+            'source' => MediaSource::Tmdb,
+            'external_id' => '603',
+            'title' => 'The Matrix',
+        ]);
+
+        $mine = UserMedia::create(['user_id' => $user->id, 'media_item_id' => $mediaItem->id, 'status' => 'completed']);
+        LogEntry::create(['user_media_id' => $mine->id, 'logged_date' => '2026-01-01']);
+
+        $theirs = UserMedia::create(['user_id' => $other->id, 'media_item_id' => $mediaItem->id, 'status' => 'completed']);
+        LogEntry::create(['user_media_id' => $theirs->id, 'logged_date' => '2026-01-01']);
+
+        $response = $this->actingAs($user)
+            ->getJson("/api/media-items/{$mediaItem->id}/log-entries")
+            ->assertOk();
+
+        $this->assertCount(1, $response->json('data'));
     }
 }

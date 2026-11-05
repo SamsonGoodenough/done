@@ -6,12 +6,15 @@ use App\Enums\MediaSource;
 use App\Http\Requests\SearchMediaItemsRequest;
 use App\Http\Requests\StoreManualMediaItemRequest;
 use App\Http\Requests\StoreMediaItemRequest;
+use App\Http\Resources\LogEntryResource;
 use App\Http\Resources\MediaItemResource;
 use App\Http\Resources\SearchResultResource;
+use App\Models\LogEntry;
 use App\Models\MediaItem;
 use App\Services\MediaCatalog\MediaItemCataloger;
 use App\Services\MediaSources\MediaSourceResolver;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class MediaItemController extends Controller
@@ -71,5 +74,29 @@ class MediaItemController extends Controller
         ]);
 
         return MediaItemResource::make($mediaItem)->response()->setStatusCode(201);
+    }
+
+    public function show(MediaItem $mediaItem): MediaItemResource
+    {
+        return MediaItemResource::make($mediaItem);
+    }
+
+    /**
+     * The item detail page's diary. Scoped to the caller's own Log Entries
+     * only — Phase 5 doesn't exist yet, so there's no visibility
+     * infrastructure to show anyone else's.
+     */
+    public function logEntries(MediaItem $mediaItem, Request $request): AnonymousResourceCollection
+    {
+        $entries = LogEntry::query()
+            ->whereHas('userMedia', function ($query) use ($mediaItem, $request) {
+                $query->where('media_item_id', $mediaItem->id)
+                    ->where('user_id', $request->user()->id);
+            })
+            ->with('participants')
+            ->orderByDesc('logged_date')
+            ->get();
+
+        return LogEntryResource::collection($entries);
     }
 }
