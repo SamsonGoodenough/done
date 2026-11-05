@@ -165,6 +165,41 @@ class MediaItemControllerTest extends TestCase
         $this->assertDatabaseCount('media_items', 1);
     }
 
+    public function test_store_from_source_does_not_collide_across_types_sharing_the_same_external_id(): void
+    {
+        // TMDB assigns movie IDs and TV IDs from independent numbering
+        // spaces, so the same numeric id can legitimately belong to an
+        // unrelated movie and TV show under the single 'tmdb' source.
+        $movie = MediaItem::create([
+            'type' => MediaType::Movie,
+            'source' => MediaSource::Tmdb,
+            'external_id' => '603',
+            'title' => 'A Movie',
+        ]);
+
+        $this->fakeMovieClient(new class implements MediaSourceClient
+        {
+            public function search(string $query, MediaType $type): array
+            {
+                return [];
+            }
+
+            public function details(string $externalId, MediaType $type): MediaDetails
+            {
+                return new MediaDetails(MediaType::TvShow, MediaSource::Tmdb, $externalId, 'An Unrelated TV Show', null, null, null, []);
+            }
+        });
+
+        $response = $this->actingAs($this->member())->postJson('/api/media-items', [
+            'type' => 'tv_show',
+            'external_id' => '603',
+        ]);
+
+        $response->assertCreated()->assertJsonPath('data.title', 'An Unrelated TV Show');
+        $this->assertNotEquals($movie->id, $response->json('data.id'));
+        $this->assertDatabaseCount('media_items', 2);
+    }
+
     public function test_store_from_source_maps_not_found_to_404(): void
     {
         $this->fakeMovieClient(new class implements MediaSourceClient

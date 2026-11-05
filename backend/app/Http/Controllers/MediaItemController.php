@@ -34,6 +34,7 @@ class MediaItemController extends Controller
         }
 
         $catalogedIds = MediaItem::query()
+            ->where('type', $type->value)
             ->where('source', $results[0]->source->value)
             ->whereIn('external_id', array_map(fn ($result) => $result->externalId, $results))
             ->pluck('id', 'external_id');

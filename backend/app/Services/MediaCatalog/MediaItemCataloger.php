@@ -4,6 +4,7 @@ namespace App\Services\MediaCatalog;
 
 use App\Models\MediaItem;
 use App\Services\MediaSources\MediaDetails;
+use Illuminate\Database\QueryException;
 
 /**
  * Encapsulates the dedup/restore-or-create decision for cataloging a result
@@ -13,6 +14,8 @@ use App\Services\MediaSources\MediaDetails;
  */
 class MediaItemCataloger
 {
+    private const UNIQUE_VIOLATION = '23505';
+
     public function catalogFromSource(MediaDetails $details): CatalogResult
     {
         $attributes = [
@@ -27,12 +30,30 @@ class MediaItemCataloger
         ];
 
         $existing = MediaItem::withTrashed()
+            ->where('type', $details->type->value)
             ->where('source', $details->source->value)
             ->where('external_id', $details->externalId)
             ->first();
 
         if ($existing === null) {
-            return new CatalogResult(MediaItem::create($attributes), wasNew: true);
+            try {
+                return new CatalogResult(MediaItem::create($attributes), wasNew: true);
+            } catch (QueryException $e) {
+                if ($e->getCode() !== self::UNIQUE_VIOLATION) {
+                    throw $e;
+                }
+
+                // Lost a create-create race to a concurrent request for the
+                // same (type, source, external_id); the row that won is
+                // exactly what we'd have returned anyway.
+                return new CatalogResult(
+                    MediaItem::where('type', $details->type->value)
+                        ->where('source', $details->source->value)
+                        ->where('external_id', $details->externalId)
+                        ->firstOrFail(),
+                    wasNew: false,
+                );
+            }
         }
 
         if ($existing->trashed()) {
