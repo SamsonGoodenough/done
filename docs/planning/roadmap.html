@@ -289,8 +289,8 @@
     <p class="desc">Where "Done" actually stands right now, phase by phase — regenerated from <code>docs/planning/09-roadmap.md</code> by the <code>update-roadmap</code> skill. Treat the markdown file as the source of truth; this page is just a nicer way to read it.</p>
     <!-- META:START -->
     <div class="meta">
-      <span>Generated 2026-11-05</span>
-      <span>Branch <code>feature/phase2-media-catalog</code></span>
+      <span>Generated 2026-11-06</span>
+      <span>Branch <code>feature/phase4-episode-season-logging</code></span>
       <span>Source <code>docs/planning/09-roadmap.md</code></span>
     </div>
     <!-- META:END -->
@@ -298,19 +298,19 @@
 
   <!-- STATS:START -->
   <div class="stats">
-    <div class="stat complete"><div class="num">2</div><div class="label">Phases complete</div></div>
-    <div class="stat progress"><div class="num">2</div><div class="label">Phases in progress</div></div>
-    <div class="stat"><div class="num">9</div><div class="label">Phases not started</div></div>
-    <div class="stat"><div class="num">5 / 48</div><div class="label">Tasks merged to main</div></div>
+    <div class="stat complete"><div class="num">4</div><div class="label">Phases complete</div></div>
+    <div class="stat progress"><div class="num">1</div><div class="label">Phases in progress</div></div>
+    <div class="stat"><div class="num">8</div><div class="label">Phases not started</div></div>
+    <div class="stat"><div class="num">14 / 48</div><div class="label">Tasks merged to main</div></div>
   </div>
   <!-- STATS:END -->
 
   <nav class="phase-nav" aria-label="Jump to phase">
     <a href="#phase-0" class="complete">P0</a>
     <a href="#phase-1" class="complete">P1</a>
-    <a href="#phase-2" class="progress">P2</a>
-    <a href="#phase-3" class="progress">P3</a>
-    <a href="#phase-4">P4</a>
+    <a href="#phase-2" class="complete">P2</a>
+    <a href="#phase-3" class="complete">P3</a>
+    <a href="#phase-4" class="progress">P4</a>
     <a href="#phase-5">P5</a>
     <a href="#phase-6">P6</a>
     <a href="#phase-7">P7</a>
@@ -352,53 +352,57 @@
     <p class="callout">A full code review of PR #1 (security + correctness, high effort) found and fixed five more real bugs before merge: resend() couldn't revive an already-expired invitation (the main case it exists for), accept() wasn't transactional, invited_by was silently missing from every invitation API response, login rate-limiting had a gap on the deactivated-account path, and the first-admin bootstrap had a check-then-create race (closed with Cache::lock() since the test suite runs on sqlite). Also set up this repo's docs/agents/*.md configuration for the engineering skill suite, landed in the same PR.</p>
   </section>
 
-  <section class="phase is-progress" id="phase-2">
+  <section class="phase is-complete" id="phase-2">
     <div class="phase-head">
       <span class="phase-tag">PHASE 2</span>
       <h2 class="phase-title">Media catalog + external integrations</h2>
-      <span class="phase-frac">0 / 6</span>
+      <span class="phase-frac">6 / 6</span>
     </div>
-    <p class="phase-status progress">In Progress</p>
-    <p class="phase-note">Branch <code>feature/phase2-media-catalog</code> created off main, not yet merged, no PR opened — Phase 3's work has also landed on this same branch rather than a new one (not yet split out). Design locked in via a grilling session (see <a href="../adr/0001-media-source-integration-architecture.md">ADR 0001</a>); mid-design, a games-metadata vendor swap (RAWG → IGDB) happened after RAWG proved unreliable in practice (see <a href="../adr/0002-games-metadata-vendor-igdb-over-rawg.md">ADR 0002</a> and the <a href="../research/games-api-alternatives-to-rawg.md">research notes</a>). TMDB_API_KEY and the IGDB/Twitch credentials are all obtained and set in backend/.env via scripts/setup-media-api-keys.sh. Everything below is uncommitted on this branch.</p>
+    <p class="phase-status complete">Complete</p>
+    <p class="phase-note">Merged to main via <a href="https://github.com/SamsonGoodenough/done/pull/2">PR #2</a> on 2026-11-06. Design locked in via a grilling session (see <a href="../adr/0001-media-source-integration-architecture.md">ADR 0001</a>); mid-design, a games-metadata vendor swap (RAWG → IGDB) happened after RAWG proved unreliable in practice (see <a href="../adr/0002-games-metadata-vendor-igdb-over-rawg.md">ADR 0002</a> and the <a href="../research/games-api-alternatives-to-rawg.md">research notes</a>).</p>
     <ul class="checklist">
-      <li><span class="box"></span><span class="item-text"><span>media_items migration and model</span><span class="evidence">Migration applies cleanly against Postgres with the (source, external_id) partial unique index enforced — confirmed a live duplicate is rejected, a soft-deleted match restores, and two manual/null-external_id rows coexist; MediaType/MediaSource enum casts confirmed via tinker. Uncommitted on the open branch.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>TMDB integration (movies + TV search, metadata copy-in, plus episode data for TV — see Phase 4)</span><span class="evidence">Built and verified: TmdbClient implements the shared MediaSourceClient contract (movie/TV search + details, genre extraction straight from TMDB's detail response, 404-vs-unavailable mapping); 8 passing unit tests. Caught and fixed a real Http::retry() gotcha: its first argument is total attempts, not retry count, so retry(1, ...) is actually zero retries.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>IGDB integration (games)</span><span class="evidence">Switched from the originally planned RAWG after reliability concerns (see ADR 0002). Built and verified: IgdbClient (Twitch OAuth2 client-credentials flow, token caching with 401-triggered refresh, Apicalypse queries, platforms/developer extraction); 6 passing unit tests.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Open Library integration (books)</span><span class="evidence">Built and verified: OpenLibraryClient, cataloging at edition granularity (not "work"), free-text publish_date normalization that specifically guards against PHP's strtotime("1954") silently returning today's date; 7 passing unit tests.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Manual media entry (Manager/Admin only)</span><span class="evidence">Built and verified: POST /api/media-items/manual, new create-media-item permission granted to Admin+Manager, minimal-required-fields validation (type + title only); covered by feature tests.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Basic search-and-add flow in the API</span><span class="evidence">Built and verified: GET /api/media-items/search (flags already-cataloged results, per-user rate limit), POST /api/media-items (dedup/restore-with-metadata-refresh), GET /api/media-items/{id} show endpoint, uniform 404/503 exception rendering; covered by feature tests.</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>media_items migration and model</span><span class="evidence">Merged to main. MediaType/MediaSource enum casts, soft-delete + restore-on-dedup via a partial unique index (originally (source, external_id), see the code-review fix below).</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>TMDB integration (movies + TV search, metadata copy-in, plus episode data for TV — see Phase 4)</span><span class="evidence">Merged to main. TmdbClient implements the shared MediaSourceClient contract (movie/TV search + details, genre extraction straight from TMDB's detail response, 404-vs-unavailable mapping); 8 passing unit tests.</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>IGDB integration (games)</span><span class="evidence">Switched from the originally planned RAWG after reliability concerns (see ADR 0002). Merged to main: IgdbClient (Twitch OAuth2 client-credentials flow, token caching with 401-triggered refresh, Apicalypse queries, platforms/developer extraction); 6 passing unit tests.</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>Open Library integration (books)</span><span class="evidence">Merged to main. OpenLibraryClient, cataloging at edition granularity (not "work"), free-text publish_date normalization; 7 passing unit tests.</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>Manual media entry (Manager/Admin only)</span><span class="evidence">Merged to main. POST /api/media-items/manual, new create-media-item permission granted to Admin+Manager, minimal-required-fields validation (type + title only).</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>Basic search-and-add flow in the API</span><span class="evidence">Merged to main. GET /api/media-items/search (flags already-cataloged results, per-user rate limit), POST /api/media-items (dedup/restore-with-metadata-refresh), GET /api/media-items/{id} show endpoint, uniform 404/503 exception rendering.</span></span></li>
     </ul>
+    <p class="callout">A full code review (high effort) before merge found and fixed 9 real issues: media_items' dedup key colliding across types (TMDB's movie and TV ids share a numbering space under the single tmdb source, the unique index and every lookup now also scope by type), store() always hitting the external API even for an already-cataloged item, a route-parameter casing mismatch silently denying every shelf update, ShelfEntryManager silently overwriting an already-active shelf entry's status/favourite on a repeat POST, two unguarded check-then-create races, duplicated validation logic moved onto the enum, shelf-index filters that weren't enum-validated, stale RAWG/RawgClient references left over from the vendor swap, and IGDB's retry catching too broadly while dropping its first exception on a double failure. One further issue (pervasive em dash usage, against this repo's style convention) was deliberately deferred as too large to fix safely in the same pass.</p>
   </section>
 
-  <section class="phase is-progress" id="phase-3">
+  <section class="phase is-complete" id="phase-3">
     <div class="phase-head">
       <span class="phase-tag">PHASE 3</span>
       <h2 class="phase-title">Shelf, diary, and backlog</h2>
-      <span class="phase-frac">0 / 3</span>
+      <span class="phase-frac">3 / 3</span>
     </div>
-    <p class="phase-status progress">In Progress</p>
-    <p class="phase-note">Same open, unmerged branch as Phase 2 (see above). Design locked in via a second grilling session; one real cross-document contradiction surfaced and got resolved — see <a href="../adr/0003-shelf-status-and-logging-are-decoupled.md">ADR 0003</a>.</p>
+    <p class="phase-status complete">Complete</p>
+    <p class="phase-note">Merged to main via <a href="https://github.com/SamsonGoodenough/done/pull/2">PR #2</a> on 2026-11-06, the same PR as Phase 2. Design locked in via a second grilling session; one real cross-document contradiction surfaced and got resolved, see <a href="../adr/0003-shelf-status-and-logging-are-decoupled.md">ADR 0003</a>.</p>
     <ul class="checklist">
-      <li><span class="box"></span><span class="item-text"><span>user_media, log_entries, and log_entry_participants migrations and models</span><span class="evidence">Built and verified: user_media gets the same soft-delete + restore-on-dedup pattern as media_items; log_entries deliberately excludes episode_id/season_number (deferred to Phase 4); log_entry_participants is a plain pivot, no model class.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Add to shelf (with status), change status, log a completion (with date/rating/review/spoiler/favourite/rewatch/tagged members)</span><span class="evidence">Built and verified: ShelfEntryManager/LogEntryRecorder services back POST/GET/PATCH/DELETE /api/user-media and POST /api/log-entries — one transaction finds-or-creates the shelf entry, auto-sets status to Completed only on creation/restoration, computes is_rewatch with a manual-override escape hatch, writes is_favourite through from the log form, attaches tagged participants; 22 passing feature tests. Caught and fixed a real bug: a route-parameter casing mismatch in UpdateUserMediaRequest silently denied every update, including the rightful owner's, until a test caught it.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Shelf views by status; item detail page showing all log entries for that item</span><span class="evidence">Built and verified: GET /api/user-media (status/type/favourite filters), GET /api/media-items/{id}/log-entries scoped to the caller's own diary only (Phase 5 will extend this).</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>user_media, log_entries, and log_entry_participants migrations and models</span><span class="evidence">Merged to main. user_media gets the same soft-delete + restore-on-dedup pattern as media_items; log_entries deliberately excludes episode_id/season_number (deferred to Phase 4); log_entry_participants is a plain pivot, no model class.</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>Add to shelf (with status), change status, log a completion (with date/rating/review/spoiler/favourite/rewatch/tagged members)</span><span class="evidence">Merged to main. ShelfEntryManager/LogEntryRecorder services back POST/GET/PATCH/DELETE /api/user-media and POST /api/log-entries — one transaction finds-or-creates the shelf entry, auto-sets status to Completed only on creation/restoration, computes is_rewatch with a manual-override escape hatch, writes is_favourite through from the log form, attaches tagged participants.</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>Shelf views by status; item detail page showing all log entries for that item</span><span class="evidence">Merged to main. GET /api/user-media (status/type/favourite filters), GET /api/media-items/{id}/log-entries scoped to the caller's own diary only (Phase 5 will extend this).</span></span></li>
     </ul>
-    <p class="callout">87 backend tests passing in total as of this update.</p>
+    <p class="callout">See Phase 2's code-review note: two of the nine fixes (the overwrite bug and one of the two races) were in this phase's ShelfEntryManager/LogEntryRecorder.</p>
+    <p class="callout">89 backend tests passing in total as of merge. Manually verified end-to-end through nginx against the real TMDB/IGDB/Open Library APIs (search, catalog-from-source, shelve, log, diary) before merge.</p>
   </section>
 
-  <section class="phase" id="phase-4">
+  <section class="phase is-progress" id="phase-4">
     <div class="phase-head">
       <span class="phase-tag">PHASE 4</span>
       <h2 class="phase-title">Episode &amp; season logging (TV)</h2>
       <span class="phase-frac">0 / 4</span>
     </div>
-    <p class="phase-status">Not Started</p>
+    <p class="phase-status progress">In Progress</p>
+    <p class="phase-note">Branch <code>feature/phase4-episode-season-logging</code>. Design locked in via a grilling + domain-modeling session (new GLOSSARY.md terms <strong>Episode</strong> and <strong>Logging Target</strong>; see <a href="../adr/0004-episode-sync-is-lazy-and-self-refreshing.md">ADR 0004</a> for the sync-architecture trade-off). All four items below are implemented and passing locally (21 new/updated backend tests, 110 total passing, Pint clean), but nothing is committed or pushed yet, still an uncommitted working-tree diff on this branch.</p>
     <ul class="checklist">
-      <li><span class="box"></span><span class="item-text"><span>episodes migration, synced from TMDB per show</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Extend log_entries with nullable episode_id and season_number columns</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Application-layer validation: episode_id/season_number mutual exclusivity, episode belongs to the show</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Rewatch detection scoped per target, not just per show</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>episodes migration, synced from TMDB per show</span><span class="evidence">Implemented, uncommitted. Sync is lazy: the first GET /api/media-items/{id}/episodes call for a show fetches every season (a new SupportsEpisodeSync contract on TmdbClient, since only TV needs this), persisting season-by-season so a mid-sync failure keeps whatever already succeeded; this also self-backfills shows cataloged before this phase existed. A still-airing show gets re-checked for a newly-appeared season on every subsequent read, with the refreshed status written back as a side effect; the check stops permanently once a show's status goes terminal (Ended/Canceled). A manually-cataloged show (no external_id) is left alone entirely, returning whatever's already stored locally.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>Extend log_entries with nullable episode_id and season_number columns</span><span class="evidence">Implemented, uncommitted.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>Application-layer validation: episode_id/season_number mutual exclusivity, episode belongs to the show</span><span class="evidence">Implemented, uncommitted. Also rejects episode/season granularity on any non-tv_show media item, and a season can't be logged until it's actually been synced.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>Rewatch detection scoped per target, not just per show</span><span class="evidence">Implemented, uncommitted. LogEntryRecorder scopes by exact Logging Target (same episode_id, or same season_number, or both null), so a whole-show log entry is never a rewatch relative to a season- or episode-level entry made under it.</span></span></li>
     </ul>
+    <p class="callout">A code review (high effort) of the uncommitted diff found and fixed one real bug before this phase goes any further: EpisodeSyncer::episodesFor() called TmdbClient::showSummary() unconditionally, which crashed with a TypeError for any manually-cataloged (source = manual) TV show, since external_id is always null for those, reproduced live via tinker. Fixed with an early return for external_id === null. The same review also flagged this phase's new files for using em dashes against this repo's style convention (CLAUDE.md); fixed throughout the new/changed code and this phase's own doc prose. Unlike Phase 2's pervasive-em-dash finding, this one was small enough to fix in the same pass rather than deferred.</p>
   </section>
 
   <section class="phase" id="phase-5">
