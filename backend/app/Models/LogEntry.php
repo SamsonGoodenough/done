@@ -9,11 +9,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * A Log Entry: one dated record of finishing (or re-finishing) a Media
- * Item. Create-only in Phase 3 — no edit/delete yet, see
+ * A Log Entry: one dated record of finishing (or re-finishing) a Logging
+ * Target. Create-only in Phase 3, no edit/delete yet; see
  * docs/planning/09-roadmap.md and GLOSSARY.md.
  */
-#[Fillable(['user_media_id', 'logged_date', 'rating', 'review', 'contains_spoilers', 'is_rewatch'])]
+#[Fillable(['user_media_id', 'episode_id', 'season_number', 'logged_date', 'rating', 'review', 'contains_spoilers', 'is_rewatch'])]
 class LogEntry extends Model
 {
     use SoftDeletes;
@@ -37,6 +37,17 @@ class LogEntry extends Model
     public function userMedia(): BelongsTo
     {
         return $this->belongsTo(UserMedia::class);
+    }
+
+    /**
+     * Set only when this entry's Logging Target is a single Episode. See
+     * GLOSSARY.md "Logging Target".
+     *
+     * @return BelongsTo<Episode, $this>
+     */
+    public function episode(): BelongsTo
+    {
+        return $this->belongsTo(Episode::class);
     }
 
     /**
