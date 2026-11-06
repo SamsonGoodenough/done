@@ -1,0 +1,9 @@
+# Episode sync is lazy, on-read, and self-refreshing for airing shows
+
+**Status:** accepted
+
+TMDB only returns season/episode *counts* from its show-details call; episode titles, numbers, and air dates each need a separate per-season call. Rather than fetching all of a show's seasons eagerly (synchronously at catalog time, blocking that request on N API calls, or via a queued job, and this app has no job infrastructure yet; ADR 0001 already rejected a periodic metadata-refresh job for v1), episode sync happens lazily: the first call to `GET /api/media-items/{id}/episodes` for a given show fetches and persists every season, later calls just read the `episodes` table. This also backfills the TV shows already cataloged in Phase 2/3 for free, with no separate migration/command needed.
+
+A partial failure (TMDB blips on season 14 of 20) keeps whatever seasons already succeeded: each season's episodes are persisted as soon as that call returns, not in one all-or-nothing transaction for the whole show, so a retry only needs the seasons still missing, same `MediaSourceUnavailableException`/503 pattern as every other source-client failure.
+
+New seasons are picked up the same way: every call to the episodes endpoint for a show whose cached `media_items.metadata.status` isn't yet `Ended`/`Canceled` makes one extra, cheap TMDB show-details call, diffs its season list against what's already synced, fetches only what's new, and writes the refreshed status/season-count back onto `media_items.metadata` as a side effect. Once a show's cached status is terminal, that check stops forever. This is a real trade-off (one extra API call on every read of a still-airing show, forever, vs. a show's episode list silently going stale), worth recording because a future reader will otherwise wonder why a read-only episode-list endpoint is making an outbound HTTP call at all.
