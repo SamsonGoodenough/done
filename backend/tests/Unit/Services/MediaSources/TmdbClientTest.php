@@ -111,6 +111,56 @@ class TmdbClientTest extends TestCase
         ], $details->metadata);
     }
 
+    public function test_show_summary_maps_status_and_season_numbers_including_specials(): void
+    {
+        Http::fake([
+            'https://api.themoviedb.org/3/tv/1399*' => Http::response($this->fixture('tv-details'), 200),
+        ]);
+
+        $summary = $this->client->showSummary('1399');
+
+        $this->assertSame('Ended', $summary->status);
+        $this->assertSame([0, 1, 2], $summary->seasonNumbers);
+    }
+
+    public function test_show_summary_404_throws_not_found(): void
+    {
+        Http::fake([
+            'https://api.themoviedb.org/3/tv/999999*' => Http::response($this->fixture('not-found'), 404),
+        ]);
+
+        $this->expectException(MediaNotFoundException::class);
+
+        $this->client->showSummary('999999');
+    }
+
+    public function test_episodes_for_season_maps_episode_numbers_titles_and_air_dates(): void
+    {
+        Http::fake([
+            'https://api.themoviedb.org/3/tv/1399/season/1*' => Http::response($this->fixture('tv-season-1'), 200),
+        ]);
+
+        $episodes = $this->client->episodesForSeason('1399', 1);
+
+        $this->assertCount(2, $episodes);
+        $this->assertSame(1, $episodes[0]->seasonNumber);
+        $this->assertSame(1, $episodes[0]->episodeNumber);
+        $this->assertSame('Winter Is Coming', $episodes[0]->title);
+        $this->assertSame('2011-04-17', $episodes[0]->airDate);
+    }
+
+    public function test_episodes_for_season_normalizes_empty_title_and_air_date_to_null(): void
+    {
+        Http::fake([
+            'https://api.themoviedb.org/3/tv/1399/season/2*' => Http::response($this->fixture('tv-season-2'), 200),
+        ]);
+
+        $episodes = $this->client->episodesForSeason('1399', 2);
+
+        $this->assertNull($episodes[1]->title);
+        $this->assertNull($episodes[1]->airDate);
+    }
+
     public function test_details_404_throws_not_found_without_retrying(): void
     {
         Http::fake([

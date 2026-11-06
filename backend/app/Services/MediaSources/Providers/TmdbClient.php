@@ -4,11 +4,14 @@ namespace App\Services\MediaSources\Providers;
 
 use App\Enums\MediaSource;
 use App\Enums\MediaType;
+use App\Services\MediaSources\EpisodeData;
 use App\Services\MediaSources\Exceptions\MediaNotFoundException;
 use App\Services\MediaSources\Exceptions\MediaSourceUnavailableException;
 use App\Services\MediaSources\MediaDetails;
 use App\Services\MediaSources\MediaSourceClient;
 use App\Services\MediaSources\SearchResult;
+use App\Services\MediaSources\ShowSummary;
+use App\Services\MediaSources\SupportsEpisodeSync;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
@@ -21,7 +24,7 @@ use Throwable;
  * docs/planning/07-external-integrations.md and
  * docs/adr/0001-media-source-integration-architecture.md.
  */
-class TmdbClient implements MediaSourceClient
+class TmdbClient implements MediaSourceClient, SupportsEpisodeSync
 {
     public function search(string $query, MediaType $type): array
     {
@@ -52,6 +55,64 @@ class TmdbClient implements MediaSourceClient
         $data = $this->decodeOrFail($response);
 
         return $this->mapDetails($data, $type, $externalId);
+    }
+
+    /**
+     * Status plus every season number TMDB currently lists for the show
+     * (including specials, season 0), enough for EpisodeSyncer to diff
+     * against what's already synced without fetching each season's full
+     * episode list. Hits the same /tv/{id} endpoint as details().
+     *
+     * @throws MediaNotFoundException
+     * @throws MediaSourceUnavailableException
+     */
+    public function showSummary(string $externalId): ShowSummary
+    {
+        $response = $this->getOrFail("{$this->baseUrl()}/tv/{$externalId}", ['api_key' => $this->apiKey()]);
+
+        if ($response->status() === 404) {
+            throw MediaNotFoundException::forExternalId(MediaSource::Tmdb, $externalId);
+        }
+
+        $data = $this->decodeOrFail($response);
+
+        return new ShowSummary(
+            status: $data['status'] ?? '',
+            seasonNumbers: array_map(
+                static fn (array $season) => $season['season_number'],
+                $data['seasons'] ?? []
+            ),
+        );
+    }
+
+    /**
+     * @return array<int, EpisodeData>
+     *
+     * @throws MediaNotFoundException
+     * @throws MediaSourceUnavailableException
+     */
+    public function episodesForSeason(string $externalId, int $seasonNumber): array
+    {
+        $response = $this->getOrFail(
+            "{$this->baseUrl()}/tv/{$externalId}/season/{$seasonNumber}",
+            ['api_key' => $this->apiKey()]
+        );
+
+        if ($response->status() === 404) {
+            throw MediaNotFoundException::forExternalId(MediaSource::Tmdb, "{$externalId}/season/{$seasonNumber}");
+        }
+
+        $data = $this->decodeOrFail($response);
+
+        return array_map(
+            fn (array $episode) => new EpisodeData(
+                seasonNumber: $seasonNumber,
+                episodeNumber: $episode['episode_number'],
+                title: $this->nullIfEmpty($episode['name'] ?? null),
+                airDate: $this->nullIfEmpty($episode['air_date'] ?? null),
+            ),
+            $data['episodes'] ?? []
+        );
     }
 
     /**
@@ -109,7 +170,7 @@ class TmdbClient implements MediaSourceClient
             source: MediaSource::Tmdb,
             externalId: (string) $result['id'],
             title: $isMovie ? ($result['title'] ?? '') : ($result['name'] ?? ''),
-            releaseDate: $this->normalizeDate($isMovie ? ($result['release_date'] ?? null) : ($result['first_air_date'] ?? null)),
+            releaseDate: $this->nullIfEmpty($isMovie ? ($result['release_date'] ?? null) : ($result['first_air_date'] ?? null)),
             posterUrl: $posterPath !== null ? $this->imageBaseUrl().$posterPath : null,
             overview: $result['overview'] ?? null,
         );
@@ -135,16 +196,16 @@ class TmdbClient implements MediaSourceClient
             source: MediaSource::Tmdb,
             externalId: isset($data['id']) ? (string) $data['id'] : $externalId,
             title: $isMovie ? ($data['title'] ?? '') : ($data['name'] ?? ''),
-            releaseDate: $this->normalizeDate($isMovie ? ($data['release_date'] ?? null) : ($data['first_air_date'] ?? null)),
+            releaseDate: $this->nullIfEmpty($isMovie ? ($data['release_date'] ?? null) : ($data['first_air_date'] ?? null)),
             posterUrl: $posterPath !== null ? $this->imageBaseUrl().$posterPath : null,
             overview: $data['overview'] ?? null,
             metadata: $metadata,
         );
     }
 
-    private function normalizeDate(?string $date): ?string
+    private function nullIfEmpty(?string $value): ?string
     {
-        return $date === null || $date === '' ? null : $date;
+        return $value === null || $value === '' ? null : $value;
     }
 
     private function endpointSegment(MediaType $type): string
