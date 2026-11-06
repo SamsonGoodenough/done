@@ -290,7 +290,7 @@
     <!-- META:START -->
     <div class="meta">
       <span>Generated 2026-11-06</span>
-      <span>Branch <code>feature/phase4-episode-season-logging</code></span>
+      <span>Branch <code>feature/phase5-friends-profile-visibility</code></span>
       <span>Source <code>docs/planning/09-roadmap.md</code></span>
     </div>
     <!-- META:END -->
@@ -298,10 +298,10 @@
 
   <!-- STATS:START -->
   <div class="stats">
-    <div class="stat complete"><div class="num">4</div><div class="label">Phases complete</div></div>
+    <div class="stat complete"><div class="num">5</div><div class="label">Phases complete</div></div>
     <div class="stat progress"><div class="num">1</div><div class="label">Phases in progress</div></div>
-    <div class="stat"><div class="num">8</div><div class="label">Phases not started</div></div>
-    <div class="stat"><div class="num">14 / 48</div><div class="label">Tasks merged to main</div></div>
+    <div class="stat"><div class="num">7</div><div class="label">Phases not started</div></div>
+    <div class="stat"><div class="num">18 / 48</div><div class="label">Tasks merged to main</div></div>
   </div>
   <!-- STATS:END -->
 
@@ -310,8 +310,8 @@
     <a href="#phase-1" class="complete">P1</a>
     <a href="#phase-2" class="complete">P2</a>
     <a href="#phase-3" class="complete">P3</a>
-    <a href="#phase-4" class="progress">P4</a>
-    <a href="#phase-5">P5</a>
+    <a href="#phase-4" class="complete">P4</a>
+    <a href="#phase-5" class="progress">P5</a>
     <a href="#phase-6">P6</a>
     <a href="#phase-7">P7</a>
     <a href="#phase-8">P8</a>
@@ -388,30 +388,31 @@
     <p class="callout">89 backend tests passing in total as of merge. Manually verified end-to-end through nginx against the real TMDB/IGDB/Open Library APIs (search, catalog-from-source, shelve, log, diary) before merge.</p>
   </section>
 
-  <section class="phase is-progress" id="phase-4">
+  <section class="phase is-complete" id="phase-4">
     <div class="phase-head">
       <span class="phase-tag">PHASE 4</span>
       <h2 class="phase-title">Episode &amp; season logging (TV)</h2>
-      <span class="phase-frac">0 / 4</span>
+      <span class="phase-frac">4 / 4</span>
     </div>
-    <p class="phase-status progress">In Progress</p>
-    <p class="phase-note">Branch <code>feature/phase4-episode-season-logging</code>. Design locked in via a grilling + domain-modeling session (new GLOSSARY.md terms <strong>Episode</strong> and <strong>Logging Target</strong>; see <a href="../adr/0004-episode-sync-is-lazy-and-self-refreshing.md">ADR 0004</a> for the sync-architecture trade-off). All four items below are implemented and passing locally (21 new/updated backend tests, 110 total passing, Pint clean), but nothing is committed or pushed yet, still an uncommitted working-tree diff on this branch.</p>
+    <p class="phase-status complete">Complete</p>
+    <p class="phase-note">Merged to main via <a href="https://github.com/SamsonGoodenough/done/pull/3">PR #3</a> on 2026-11-06. Design locked in via a grilling + domain-modeling session (new GLOSSARY.md terms <strong>Episode</strong> and <strong>Logging Target</strong>; see <a href="../adr/0004-episode-sync-is-lazy-and-self-refreshing.md">ADR 0004</a> for the sync-architecture trade-off).</p>
     <ul class="checklist">
-      <li><span class="box"></span><span class="item-text"><span>episodes migration, synced from TMDB per show</span><span class="evidence">Implemented, uncommitted. Sync is lazy: the first GET /api/media-items/{id}/episodes call for a show fetches every season (a new SupportsEpisodeSync contract on TmdbClient, since only TV needs this), persisting season-by-season so a mid-sync failure keeps whatever already succeeded; this also self-backfills shows cataloged before this phase existed. A still-airing show gets re-checked for a newly-appeared season on every subsequent read, with the refreshed status written back as a side effect; the check stops permanently once a show's status goes terminal (Ended/Canceled). A manually-cataloged show (no external_id) is left alone entirely, returning whatever's already stored locally.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Extend log_entries with nullable episode_id and season_number columns</span><span class="evidence">Implemented, uncommitted.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Application-layer validation: episode_id/season_number mutual exclusivity, episode belongs to the show</span><span class="evidence">Implemented, uncommitted. Also rejects episode/season granularity on any non-tv_show media item, and a season can't be logged until it's actually been synced.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Rewatch detection scoped per target, not just per show</span><span class="evidence">Implemented, uncommitted. LogEntryRecorder scopes by exact Logging Target (same episode_id, or same season_number, or both null), so a whole-show log entry is never a rewatch relative to a season- or episode-level entry made under it.</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>episodes migration, synced from TMDB per show</span><span class="evidence">Merged to main. Sync is lazy: the first GET /api/media-items/{id}/episodes call for a show fetches every season (a new SupportsEpisodeSync contract on TmdbClient, since only TV needs this), persisting season-by-season so a mid-sync failure keeps whatever already succeeded; this also self-backfills shows cataloged before this phase existed. A still-airing show gets re-checked for a newly-appeared season on every subsequent read, with the refreshed status written back as a side effect; the check stops permanently once a show's status goes terminal (Ended/Canceled). A manually-cataloged show (no external_id) is left alone entirely, returning whatever's already stored locally.</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>Extend log_entries with nullable episode_id and season_number columns</span><span class="evidence">Merged to main.</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>Application-layer validation: episode_id/season_number mutual exclusivity, episode belongs to the show</span><span class="evidence">Merged to main. Also rejects episode/season granularity on any non-tv_show media item, and a season can't be logged until it's actually been synced.</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>Rewatch detection scoped per target, not just per show</span><span class="evidence">Merged to main. LogEntryRecorder scopes by exact Logging Target (same episode_id, or same season_number, or both null), so a whole-show log entry is never a rewatch relative to a season- or episode-level entry made under it.</span></span></li>
     </ul>
-    <p class="callout">A code review (high effort) of the uncommitted diff found and fixed one real bug before this phase goes any further: EpisodeSyncer::episodesFor() called TmdbClient::showSummary() unconditionally, which crashed with a TypeError for any manually-cataloged (source = manual) TV show, since external_id is always null for those, reproduced live via tinker. Fixed with an early return for external_id === null. The same review also flagged this phase's new files for using em dashes against this repo's style convention (CLAUDE.md); fixed throughout the new/changed code and this phase's own doc prose. Unlike Phase 2's pervasive-em-dash finding, this one was small enough to fix in the same pass rather than deferred.</p>
+    <p class="callout">A code review (high effort) before merge found and fixed one real bug: EpisodeSyncer::episodesFor() called TmdbClient::showSummary() unconditionally, which crashed with a TypeError for any manually-cataloged (source = manual) TV show, since external_id is always null for those, reproduced live via tinker. Fixed with an early return for external_id === null, plus a regression test. The same review also flagged this phase's new files for using em dashes against this repo's style convention (CLAUDE.md); fixed throughout the new/changed code and this phase's own doc prose. Unlike Phase 2's pervasive-em-dash finding, this one was small enough to fix in the same pass rather than deferred. 21 new/updated backend tests, 110 total passing at merge, Pint clean.</p>
   </section>
 
-  <section class="phase" id="phase-5">
+  <section class="phase is-progress" id="phase-5">
     <div class="phase-head">
       <span class="phase-tag">PHASE 5</span>
       <h2 class="phase-title">Friends &amp; profile visibility</h2>
       <span class="phase-frac">0 / 5</span>
     </div>
-    <p class="phase-status">Not Started</p>
+    <p class="phase-status progress">In Progress</p>
+    <p class="phase-note">Branch <code>feature/phase5-friends-profile-visibility</code> created off main; no code written yet.</p>
     <ul class="checklist">
       <li><span class="box"></span><span class="item-text"><span>friendships migration and model; send/accept/decline request endpoints</span></span></li>
       <li><span class="box"></span><span class="item-text"><span>users.profile_visibility column and settings endpoint</span></span></li>
