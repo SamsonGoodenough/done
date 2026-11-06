@@ -14,6 +14,8 @@ class LogEntryController extends Controller
         $logEntry = $recorder->record(
             $request->user(),
             $request->mediaItemId(),
+            $request->episodeId(),
+            $request->seasonNumber(),
             $request->loggedDate(),
             $request->rating(),
             $request->review(),

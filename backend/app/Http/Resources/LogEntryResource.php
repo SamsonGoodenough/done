@@ -15,6 +15,8 @@ class LogEntryResource extends JsonResource
         return [
             'id' => $this->id,
             'user_media_id' => $this->user_media_id,
+            'episode_id' => $this->episode_id,
+            'season_number' => $this->season_number,
             'logged_date' => $this->logged_date,
             'rating' => $this->rating === null ? null : (float) $this->rating,
             'review' => $this->review,

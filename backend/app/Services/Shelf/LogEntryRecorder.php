@@ -26,6 +26,8 @@ class LogEntryRecorder
     public function record(
         User $user,
         int $mediaItemId,
+        ?int $episodeId,
+        ?int $seasonNumber,
         string $loggedDate,
         ?float $rating,
         ?string $review,
@@ -35,16 +37,18 @@ class LogEntryRecorder
         array $taggedUserIds,
     ): LogEntry {
         return DB::transaction(function () use (
-            $user, $mediaItemId, $loggedDate, $rating, $review,
+            $user, $mediaItemId, $episodeId, $seasonNumber, $loggedDate, $rating, $review,
             $containsSpoilers, $isFavourite, $isRewatchOverride, $taggedUserIds
         ) {
             $userMedia = $this->findOrCreateShelfEntry($user->id, $mediaItemId, $isFavourite);
 
             $isRewatch = $isRewatchOverride
-                ?? LogEntry::where('user_media_id', $userMedia->id)->exists();
+                ?? $this->priorEntryExistsForTarget($userMedia->id, $episodeId, $seasonNumber);
 
             $logEntry = LogEntry::create([
                 'user_media_id' => $userMedia->id,
+                'episode_id' => $episodeId,
+                'season_number' => $seasonNumber,
                 'logged_date' => $loggedDate,
                 'rating' => $rating,
                 'review' => $review,
@@ -58,6 +62,24 @@ class LogEntryRecorder
 
             return $logEntry->load('participants');
         });
+    }
+
+    /**
+     * A rewatch is scoped to the exact same Logging Target, never "does this
+     * logically overlap with past entries." Finishing a whole show is a
+     * different target from, and never a rewatch relative to, a season- or
+     * episode-level entry made under it. See GLOSSARY.md "Logging Target"
+     * and docs/planning/04-data-model.md.
+     */
+    private function priorEntryExistsForTarget(int $userMediaId, ?int $episodeId, ?int $seasonNumber): bool
+    {
+        return LogEntry::where('user_media_id', $userMediaId)
+            ->when(
+                $episodeId !== null,
+                fn ($query) => $query->where('episode_id', $episodeId),
+                fn ($query) => $query->whereNull('episode_id')->where('season_number', $seasonNumber)
+            )
+            ->exists();
     }
 
     private function findOrCreateShelfEntry(int $userId, int $mediaItemId, ?bool $isFavourite): UserMedia
