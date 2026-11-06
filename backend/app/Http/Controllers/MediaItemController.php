@@ -3,14 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Enums\MediaSource;
+use App\Enums\MediaType;
 use App\Http\Requests\SearchMediaItemsRequest;
 use App\Http\Requests\StoreManualMediaItemRequest;
 use App\Http\Requests\StoreMediaItemRequest;
+use App\Http\Resources\EpisodeResource;
 use App\Http\Resources\LogEntryResource;
 use App\Http\Resources\MediaItemResource;
 use App\Http\Resources\SearchResultResource;
 use App\Models\LogEntry;
 use App\Models\MediaItem;
+use App\Services\Episodes\EpisodeSyncer;
 use App\Services\MediaCatalog\MediaItemCataloger;
 use App\Services\MediaSources\MediaSourceResolver;
 use Illuminate\Http\JsonResponse;
@@ -116,5 +119,18 @@ class MediaItemController extends Controller
             ->get();
 
         return LogEntryResource::collection($entries);
+    }
+
+    /**
+     * A show's episode list, synced from its source on first request. See
+     * docs/adr/0004-episode-sync-is-lazy-and-self-refreshing.md.
+     */
+    public function episodes(MediaItem $mediaItem, EpisodeSyncer $syncer): AnonymousResourceCollection
+    {
+        if ($mediaItem->type !== MediaType::TvShow) {
+            abort(422, 'Only a tv_show media item has episodes.');
+        }
+
+        return EpisodeResource::collection($syncer->episodesFor($mediaItem));
     }
 }

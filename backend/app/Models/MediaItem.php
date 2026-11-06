@@ -7,6 +7,7 @@ use App\Enums\MediaType;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable(['type', 'source', 'external_id', 'title', 'release_date', 'poster_url', 'overview', 'metadata', 'added_by'])]
@@ -33,5 +34,15 @@ class MediaItem extends Model
     public function addedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'added_by');
+    }
+
+    /**
+     * tv_show only. See Episode and docs/adr/0004-episode-sync-is-lazy-and-self-refreshing.md.
+     *
+     * @return HasMany<Episode, $this>
+     */
+    public function episodes(): HasMany
+    {
+        return $this->hasMany(Episode::class);
     }
 }

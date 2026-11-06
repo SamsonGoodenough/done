@@ -30,6 +30,7 @@ Route::post('/media-items/manual', [MediaItemController::class, 'storeManual'])-
 // or {mediaItem} would greedily capture "search" as an id.
 Route::get('/media-items/{mediaItem}', [MediaItemController::class, 'show'])->middleware('auth:sanctum');
 Route::get('/media-items/{mediaItem}/log-entries', [MediaItemController::class, 'logEntries'])->middleware('auth:sanctum');
+Route::get('/media-items/{mediaItem}/episodes', [MediaItemController::class, 'episodes'])->middleware('auth:sanctum');
 
 // Shelving and logging apply equally regardless of role — ownership-only
 // authorization, no permission gate. See

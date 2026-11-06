@@ -9,12 +9,15 @@ use App\Models\LogEntry;
 use App\Models\MediaItem;
 use App\Models\User;
 use App\Models\UserMedia;
+use App\Services\MediaSources\EpisodeData;
 use App\Services\MediaSources\Exceptions\MediaNotFoundException;
 use App\Services\MediaSources\Exceptions\MediaSourceUnavailableException;
 use App\Services\MediaSources\MediaDetails;
 use App\Services\MediaSources\MediaSourceClient;
 use App\Services\MediaSources\Providers\TmdbClient;
 use App\Services\MediaSources\SearchResult;
+use App\Services\MediaSources\ShowSummary;
+use App\Services\MediaSources\SupportsEpisodeSync;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -331,5 +334,74 @@ class MediaItemControllerTest extends TestCase
             ->assertOk();
 
         $this->assertCount(1, $response->json('data'));
+    }
+
+    public function test_episodes_requires_authentication(): void
+    {
+        $show = MediaItem::create([
+            'type' => MediaType::TvShow,
+            'source' => MediaSource::Tmdb,
+            'external_id' => '1399',
+            'title' => 'Game of Thrones',
+        ]);
+
+        $this->getJson("/api/media-items/{$show->id}/episodes")->assertUnauthorized();
+    }
+
+    public function test_episodes_rejects_a_non_tv_show_media_item(): void
+    {
+        $movie = MediaItem::create([
+            'type' => MediaType::Movie,
+            'source' => MediaSource::Tmdb,
+            'external_id' => '603',
+            'title' => 'The Matrix',
+        ]);
+
+        $this->actingAs($this->member())
+            ->getJson("/api/media-items/{$movie->id}/episodes")
+            ->assertStatus(422);
+    }
+
+    public function test_episodes_syncs_and_returns_the_shows_episodes(): void
+    {
+        $show = MediaItem::create([
+            'type' => MediaType::TvShow,
+            'source' => MediaSource::Tmdb,
+            'external_id' => '1399',
+            'title' => 'Game of Thrones',
+            'metadata' => ['status' => 'Returning Series'],
+        ]);
+
+        $this->fakeMovieClient(new class implements MediaSourceClient, SupportsEpisodeSync
+        {
+            public function search(string $query, MediaType $type): array
+            {
+                return [];
+            }
+
+            public function details(string $externalId, MediaType $type): MediaDetails
+            {
+                throw new \RuntimeException('not used in this test');
+            }
+
+            public function showSummary(string $externalId): ShowSummary
+            {
+                return new ShowSummary('Ended', [1]);
+            }
+
+            public function episodesForSeason(string $externalId, int $seasonNumber): array
+            {
+                return [new EpisodeData(1, 1, 'Winter Is Coming', '2011-04-17')];
+            }
+        });
+
+        $response = $this->actingAs($this->member())
+            ->getJson("/api/media-items/{$show->id}/episodes")
+            ->assertOk();
+
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonPath('data.0.title', 'Winter Is Coming');
+        $response->assertJsonPath('data.0.season_number', 1);
+        $this->assertDatabaseHas('episodes', ['media_item_id' => $show->id, 'title' => 'Winter Is Coming']);
     }
 }

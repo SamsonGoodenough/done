@@ -1,0 +1,11 @@
+{
+    "_id": "3624",
+    "id": 3624,
+    "name": "Season 1",
+    "season_number": 1,
+    "air_date": "2011-04-17",
+    "episodes": [
+        {"id": 63056, "episode_number": 1, "season_number": 1, "name": "Winter Is Coming", "air_date": "2011-04-17"},
+        {"id": 63057, "episode_number": 2, "season_number": 1, "name": "The Kingsroad", "air_date": "2011-04-24"}
+    ]
+}
