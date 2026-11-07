@@ -27,6 +27,11 @@ class ActivityController extends Controller
         $entries = LogEntry::query()
             ->whereHas('userMedia', fn ($query) => $query->whereIn('user_id', $loggerIds))
             ->with(['userMedia.user', 'userMedia.mediaItem', 'participants'])
+            ->withCount([
+                'comments as comment_count' => fn ($query) => $query->withTrashed(),
+                'reactions as reaction_count',
+            ])
+            ->with(['reactions' => fn ($query) => $query->where('user_id', $viewer->id)])
             ->orderByDesc('created_at')
             ->orderByDesc('id')
             ->get();
@@ -71,7 +76,13 @@ class ActivityController extends Controller
             ->orderByDesc('id')
             ->get();
 
-        $entries = LogEntry::hydrate($rows->all())->load(['userMedia.user', 'userMedia.mediaItem', 'participants']);
+        $entries = LogEntry::hydrate($rows->all());
+        $entries->load(['userMedia.user', 'userMedia.mediaItem', 'participants']);
+        $entries->loadCount([
+            'comments as comment_count' => fn ($query) => $query->withTrashed(),
+            'reactions as reaction_count',
+        ]);
+        $entries->load(['reactions' => fn ($query) => $query->where('user_id', $viewer->id)]);
 
         return ActivityEntryResource::collection($entries);
     }

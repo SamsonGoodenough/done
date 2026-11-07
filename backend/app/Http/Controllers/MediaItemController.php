@@ -109,12 +109,19 @@ class MediaItemController extends Controller
      */
     public function logEntries(MediaItem $mediaItem, Request $request): AnonymousResourceCollection
     {
+        $viewerId = $request->user()->id;
+
         $entries = LogEntry::query()
             ->whereHas('userMedia', function ($query) use ($mediaItem, $request) {
                 $query->where('media_item_id', $mediaItem->id)
                     ->where('user_id', $request->user()->id);
             })
             ->with('participants')
+            ->withCount([
+                'comments as comment_count' => fn ($query) => $query->withTrashed(),
+                'reactions as reaction_count',
+            ])
+            ->with(['reactions' => fn ($query) => $query->where('user_id', $viewerId)])
             ->orderByDesc('logged_date')
             ->get();
 
