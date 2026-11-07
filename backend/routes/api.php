@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\FriendshipController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LogEntryController;
@@ -61,3 +62,6 @@ Route::patch('/profile/visibility', [ProfileController::class, 'updateVisibility
 // Visibility; only a member's shelf/diary/friend-list content is.
 Route::get('/members/search', [MemberController::class, 'search'])->middleware('auth:sanctum');
 Route::get('/members/{user}', [MemberController::class, 'show'])->middleware('auth:sanctum');
+
+Route::get('/activity/feed', [ActivityController::class, 'feed'])->middleware('auth:sanctum');
+Route::get('/activity/new-from-friends', [ActivityController::class, 'newFromFriends'])->middleware('auth:sanctum');
