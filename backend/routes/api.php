@@ -4,6 +4,7 @@ use App\Http\Controllers\FriendshipController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LogEntryController;
 use App\Http\Controllers\MediaItemController;
+use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserMediaController;
 use App\Http\Resources\UserResource;
@@ -54,3 +55,9 @@ Route::post('/friendships/{friendship}/decline', [FriendshipController::class, '
 Route::delete('/friendships/{friendship}', [FriendshipController::class, 'destroy'])->middleware('auth:sanctum');
 
 Route::patch('/profile/visibility', [ProfileController::class, 'updateVisibility'])->middleware('auth:sanctum');
+
+// Must stay registered after /members/search, or {user} would greedily
+// capture "search" as an id. Discoverability isn't gated by Profile
+// Visibility; only a member's shelf/diary/friend-list content is.
+Route::get('/members/search', [MemberController::class, 'search'])->middleware('auth:sanctum');
+Route::get('/members/{user}', [MemberController::class, 'show'])->middleware('auth:sanctum');
