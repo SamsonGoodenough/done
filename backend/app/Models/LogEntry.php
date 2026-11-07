@@ -78,4 +78,15 @@ class LogEntry extends Model
     {
         return $this->hasMany(Comment::class);
     }
+
+    /**
+     * Fixed-emoji Reactions on this Log Entry's Review. Only meaningful when
+     * `review` is non-null — see GLOSSARY.md "Review" and "Reaction".
+     *
+     * @return HasMany<Reaction, $this>
+     */
+    public function reactions(): HasMany
+    {
+        return $this->hasMany(Reaction::class);
+    }
 }
