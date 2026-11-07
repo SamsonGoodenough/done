@@ -301,7 +301,7 @@
     <div class="stat complete"><div class="num">5</div><div class="label">Phases complete</div></div>
     <div class="stat progress"><div class="num">1</div><div class="label">Phases in progress</div></div>
     <div class="stat"><div class="num">7</div><div class="label">Phases not started</div></div>
-    <div class="stat"><div class="num">18 / 48</div><div class="label">Tasks merged to main</div></div>
+    <div class="stat"><div class="num">18 / 49</div><div class="label">Tasks merged to main</div></div>
   </div>
   <!-- STATS:END -->
 
@@ -409,16 +409,17 @@
     <div class="phase-head">
       <span class="phase-tag">PHASE 5</span>
       <h2 class="phase-title">Friends &amp; profile visibility</h2>
-      <span class="phase-frac">0 / 5</span>
+      <span class="phase-frac">0 / 6</span>
     </div>
     <p class="phase-status progress">In Progress</p>
-    <p class="phase-note">Branch <code>feature/phase5-friends-profile-visibility</code> created off main; no code written yet.</p>
+    <p class="phase-note">Branch <code>feature/phase5-friends-profile-visibility</code>. Design locked in via a grilling + domain-modeling session (new GLOSSARY.md terms <strong>Friendship</strong>, <strong>Friend Request</strong>, <strong>Unfriending</strong>, <strong>Profile Visibility</strong>, <strong>Activity Feed</strong>, <strong>New from Friends</strong>, and a clarified <strong>Tag Friends</strong>; see <a href="../adr/0005-activity-surfaces-show-unrated-log-entries.md">ADR 0005</a> for why both activity surfaces include unrated log entries and why New from Friends needs its own per-friend query rather than a filtered view of the feed). A code review (high effort) found and fixed two real issues before this phase goes further: a genuine crossing-request race (closed with a Postgres advisory lock scoped to the user pair) and an N+1 in New from Friends (rewritten as a single query using a ROW_NUMBER() window function, portable across Postgres and sqlite, which also sidesteps a correctness bug in the naive MAX()-plus-self-join alternative). All six checklist items are implemented and passing locally (38 new backend tests, 148 total passing, Pint clean), but nothing is committed or pushed yet, still an uncommitted working-tree diff on this branch.</p>
     <ul class="checklist">
-      <li><span class="box"></span><span class="item-text"><span>friendships migration and model; send/accept/decline request endpoints</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>users.profile_visibility column and settings endpoint</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Member search/discovery endpoint</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Visibility-aware profile endpoint (public vs. private vs. friends-only)</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Activity feed endpoint: friends' recent reviews, with no-friends-yet fallback</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>friendships migration and model; send/accept/decline request endpoints</span><span class="evidence">Implemented, uncommitted. Directional requester/addressee rows (FriendshipManager); a crossing request auto-accepts instead of creating a second row; declining soft-deletes immediately so a fresh request works right away with no cooldown; either party can unfriend an accepted friendship.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>users.profile_visibility settings endpoint</span><span class="evidence">Implemented, uncommitted. The column already existed from Phase 1; PATCH /api/profile/visibility is the new part this phase adds.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>Member search/discovery endpoint</span><span class="evidence">Implemented, uncommitted. GET /api/members/search, unrestricted by any member's Profile Visibility; each result carries the viewer's own relationship status (none/pending-sent/pending-received/friends).</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>Visibility-aware profile endpoint (public vs. private vs. friends-only)</span><span class="evidence">Implemented, uncommitted. GET /api/members/{user} always returns basic info; shelf/diary/friend-list attach only when UserPolicy::viewPrivateContent allows it; a private profile the viewer can't see still returns 200 with those keys simply absent, not a 403.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>Activity feed endpoint: friends' recent activity, with no-friends-yet fallback</span><span class="evidence">Implemented, uncommitted. GET /api/activity/feed shows every accepted friend's Log Entry regardless of rating/review, most-recently-created first; falls back to the viewer's own entries, same composition, with no friends yet.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>New from Friends endpoint</span><span class="evidence">Implemented, uncommitted; added to scope during this phase's grilling session, not in the original checklist. GET /api/activity/new-from-friends: one entry per friend, their single most recent Log Entry where they're the logger (never a tagged-only entry), sorted by recency, no staleness cutoff. A single query ranks every friend's entries with a ROW_NUMBER() window function and keeps the top-ranked row per friend, so the query count stays flat regardless of friend count.</span></span></li>
     </ul>
   </section>
 

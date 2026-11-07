@@ -69,13 +69,14 @@ A code review (high effort) before merge found and fixed one real bug: `EpisodeS
 ## Phase 5 — Friends & profile visibility
 
 **Status:** In Progress
-*Branch `feature/phase5-friends-profile-visibility` created off `main`; no code written yet.*
+*Branch `feature/phase5-friends-profile-visibility`. Design locked in via a grilling + domain-modeling session (new GLOSSARY.md terms **Friendship**, **Friend Request**, **Unfriending**, **Profile Visibility**, **Activity Feed**, **New from Friends**, and a clarified **Tag Friends**; see [ADR 0005](../adr/0005-activity-surfaces-show-unrated-log-entries.md) for why both activity surfaces include unrated log entries and why New from Friends needs its own per-friend query rather than a filtered view of the feed). A code review (high effort) found and fixed two real issues before this phase goes further: a genuine crossing-request race (closed with a Postgres advisory lock scoped to the user pair) and an N+1 in New from Friends (rewritten as a single query using a `ROW_NUMBER()` window function, portable across Postgres and sqlite, which also sidesteps a correctness bug in the naive `MAX()`-plus-self-join alternative). All six checklist items are implemented and passing locally (38 new backend tests, 148 total passing, Pint clean), but nothing is committed or pushed yet, still an uncommitted working-tree diff on this branch.*
 
-- [ ] `friendships` migration and model; send/accept/decline request endpoints
-- [ ] `users.profile_visibility` column and settings endpoint
-- [ ] Member search/discovery endpoint
-- [ ] Visibility-aware profile endpoint (public vs. private vs. friends-only content)
-- [ ] Activity feed endpoint: friends' recent reviews, with the no-friends-yet fallback
+- [ ] `friendships` migration and model; send/accept/decline request endpoints (implemented, uncommitted). Directional requester/addressee rows (`FriendshipManager`); a crossing request (the addressee already has a pending request back to the requester) auto-accepts instead of creating a second row; declining soft-deletes immediately so a fresh request works right away with no cooldown; either party can unfriend an accepted friendship.
+- [ ] `users.profile_visibility` settings endpoint (implemented, uncommitted). The column itself already existed from Phase 1; `PATCH /api/profile/visibility` is the new part this phase adds.
+- [ ] Member search/discovery endpoint (implemented, uncommitted). `GET /api/members/search`, unrestricted by any member's Profile Visibility: existence/name/avatar are always searchable; each result carries the viewer's own relationship status (none/pending-sent/pending-received/friends) to that member.
+- [ ] Visibility-aware profile endpoint (implemented, uncommitted). `GET /api/members/{user}` always returns basic info; shelf/diary/friend-list are attached only when `UserPolicy::viewPrivateContent` allows it (the viewer themselves, a public profile, or an accepted friend); a private profile the viewer can't see still returns 200 with those keys simply absent, not a 403.
+- [ ] Activity feed endpoint (implemented, uncommitted). `GET /api/activity/feed` shows every accepted friend's Log Entry regardless of rating/review, most-recently-created first (not `logged_date`, which can be backdated); falls back to the viewer's own entries, same composition, with no friends yet.
+- [ ] New from Friends endpoint (implemented, uncommitted; added to scope during this phase's grilling session, not in the original checklist). `GET /api/activity/new-from-friends`: one entry per friend, their single most recent Log Entry where they're the logger (never one where they're merely a tagged participant), sorted by recency, no staleness cutoff. A single query ranks every friend's entries with a `ROW_NUMBER()` window function and keeps the top-ranked row per friend, so the query count stays flat regardless of friend count.
 
 ## Phase 6 — Comments & reactions
 
