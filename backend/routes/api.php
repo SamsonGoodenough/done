@@ -4,6 +4,7 @@ use App\Http\Controllers\FriendshipController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LogEntryController;
 use App\Http\Controllers\MediaItemController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserMediaController;
 use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
@@ -51,3 +52,5 @@ Route::post('/friendships', [FriendshipController::class, 'store'])->middleware(
 Route::post('/friendships/{friendship}/accept', [FriendshipController::class, 'accept'])->middleware('auth:sanctum');
 Route::post('/friendships/{friendship}/decline', [FriendshipController::class, 'decline'])->middleware('auth:sanctum');
 Route::delete('/friendships/{friendship}', [FriendshipController::class, 'destroy'])->middleware('auth:sanctum');
+
+Route::patch('/profile/visibility', [ProfileController::class, 'updateVisibility'])->middleware('auth:sanctum');
