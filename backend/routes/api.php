@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\FriendshipController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LogEntryController;
 use App\Http\Controllers\MediaItemController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReactionController;
 use App\Http\Controllers\UserMediaController;
 use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
@@ -46,6 +48,19 @@ Route::patch('/user-media/{userMedia}', [UserMediaController::class, 'update'])-
 Route::delete('/user-media/{userMedia}', [UserMediaController::class, 'destroy'])->middleware('auth:sanctum');
 
 Route::post('/log-entries', [LogEntryController::class, 'store'])->middleware('auth:sanctum');
+
+// Comments/Reactions attach to a Log Entry but only make sense when it has a
+// Review (enforced in the Form Request, not the route); visibility is
+// enforced in the controller via UserPolicy::viewPrivateContent, same gate
+// as any other content on the review's author. See
+// docs/planning/06-roles-permissions.md and GLOSSARY.md "Comment"/"Reaction".
+Route::get('/log-entries/{logEntry}/comments', [CommentController::class, 'index'])->middleware('auth:sanctum');
+Route::post('/log-entries/{logEntry}/comments', [CommentController::class, 'store'])->middleware('auth:sanctum');
+Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->middleware('auth:sanctum');
+
+Route::get('/log-entries/{logEntry}/reactions', [ReactionController::class, 'index'])->middleware('auth:sanctum');
+Route::post('/log-entries/{logEntry}/reactions', [ReactionController::class, 'store'])->middleware('auth:sanctum');
+Route::delete('/log-entries/{logEntry}/reactions/{emoji}', [ReactionController::class, 'destroy'])->middleware('auth:sanctum');
 
 // Friend requests apply equally regardless of role, no permission gate. See
 // docs/planning/06-roles-permissions.md and GLOSSARY.md "Friendship".

@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Enums\MediaSource;
 use App\Enums\MediaType;
 use App\Enums\UserRole;
+use App\Models\Comment;
 use App\Models\LogEntry;
 use App\Models\MediaItem;
+use App\Models\Reaction;
 use App\Models\User;
 use App\Models\UserMedia;
 use App\Services\MediaSources\EpisodeData;
@@ -334,6 +336,41 @@ class MediaItemControllerTest extends TestCase
             ->assertOk();
 
         $this->assertCount(1, $response->json('data'));
+    }
+
+    /**
+     * See docs/adr/0006-comment-reaction-summaries-embedded-in-existing-endpoints.md:
+     * this endpoint's LogEntryResource carries a comment_count (including
+     * soft-deleted "[deleted]" comments) and a condensed reaction summary,
+     * to avoid the feed/diary UI needing a side call per entry.
+     */
+    public function test_log_entries_includes_comment_count_and_the_viewers_own_reactions(): void
+    {
+        $user = $this->member();
+        $other = $this->member();
+        $mediaItem = MediaItem::create([
+            'type' => MediaType::Movie,
+            'source' => MediaSource::Tmdb,
+            'external_id' => '603',
+            'title' => 'The Matrix',
+        ]);
+
+        $userMedia = UserMedia::create(['user_id' => $user->id, 'media_item_id' => $mediaItem->id, 'status' => 'completed']);
+        $entry = LogEntry::create(['user_media_id' => $userMedia->id, 'logged_date' => '2026-01-01', 'review' => 'Loved it']);
+
+        $deletedComment = Comment::create(['log_entry_id' => $entry->id, 'user_id' => $other->id, 'body' => 'Nice!']);
+        $deletedComment->delete();
+        Comment::create(['log_entry_id' => $entry->id, 'user_id' => $other->id, 'body' => 'Still here']);
+        Reaction::create(['log_entry_id' => $entry->id, 'user_id' => $user->id, 'emoji' => 'heart']);
+        Reaction::create(['log_entry_id' => $entry->id, 'user_id' => $other->id, 'emoji' => 'heart']);
+
+        $response = $this->actingAs($user)
+            ->getJson("/api/media-items/{$mediaItem->id}/log-entries")
+            ->assertOk();
+
+        $response->assertJsonPath('data.0.comment_count', 2)
+            ->assertJsonPath('data.0.reaction_summary.count', 2)
+            ->assertJsonPath('data.0.reaction_summary.viewer_reactions', ['heart']);
     }
 
     public function test_episodes_requires_authentication(): void
