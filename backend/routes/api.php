@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FriendshipController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LogEntryController;
 use App\Http\Controllers\MediaItemController;
@@ -42,3 +43,11 @@ Route::patch('/user-media/{userMedia}', [UserMediaController::class, 'update'])-
 Route::delete('/user-media/{userMedia}', [UserMediaController::class, 'destroy'])->middleware('auth:sanctum');
 
 Route::post('/log-entries', [LogEntryController::class, 'store'])->middleware('auth:sanctum');
+
+// Friend requests apply equally regardless of role, no permission gate. See
+// docs/planning/06-roles-permissions.md and GLOSSARY.md "Friendship".
+Route::get('/friendships', [FriendshipController::class, 'index'])->middleware('auth:sanctum');
+Route::post('/friendships', [FriendshipController::class, 'store'])->middleware('auth:sanctum');
+Route::post('/friendships/{friendship}/accept', [FriendshipController::class, 'accept'])->middleware('auth:sanctum');
+Route::post('/friendships/{friendship}/decline', [FriendshipController::class, 'decline'])->middleware('auth:sanctum');
+Route::delete('/friendships/{friendship}', [FriendshipController::class, 'destroy'])->middleware('auth:sanctum');
