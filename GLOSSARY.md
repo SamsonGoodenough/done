@@ -33,7 +33,7 @@ _Avoid_: user_media on its own outside schema contexts
 
 **Log Entry** (Phase 3):
 One dated record of a user finishing (or re-finishing) a Logging Target: its own date, rating, review, and spoiler flag (`log_entries`). A Shelf Entry can have many Log Entries over time (first watch, a rewatch years later, ...); the diary is the full history of Log Entries for an item.
-_Avoid_: "Review" alone (a review is just the optional text field on a Log Entry, not the whole record)
+_Avoid_: "Review" alone for the whole record — see Review
 
 **Logging** (Phase 3):
 The act of creating a Log Entry. Distinct from Shelving: logging records a dated completion event, shelving just sets a Shelf Entry's current status and can happen with no Log Entry at all (e.g. marking something Planned).
@@ -78,3 +78,19 @@ _Avoid_: Friends' Latest, recent activity widget
 **Tag Friends** (Phase 3, clarified Phase 5):
 Marking another user as a participant who shared the experience behind a Log Entry (`log_entry_participants`). Purely informational: it never changes who can see the entry, never surfaces the entry on the tagged user's own diary/profile, and never injects it into the tagged user's friends' Activity Feed; only the logger's own friends see it there.
 _Avoid_: Co-watcher (in code/schema contexts), follower
+
+**Review** (Phase 6):
+The optional text field on a Log Entry (`log_entries.review`). Distinct from the Log Entry itself: a Log Entry with no Review is still a valid completion record, just not one anyone can Comment on or React to — both of those attach to the Log Entry row but are only permitted when its Review is non-null.
+_Avoid_: "review" as a stand-in for the whole Log Entry
+
+**Comment** (Phase 6):
+A threaded remark on a Log Entry's Review (`comments`), optionally a reply to another Comment via `parent_comment_id`, nesting arbitrarily deep. Always soft-deleted, never hard-deleted: a removed Comment renders as "[deleted]" with its replies left in place, whether it was removed by its own author, the Review's author, or an Admin acting under Moderation — there's no record kept of which.
+_Avoid_: Reply (a reply is just a Comment with a non-null `parent_comment_id`, not a separate concept)
+
+**Reaction** (Phase 6):
+A fixed-emoji response to a Log Entry's Review (`reactions`: thumbs_up, heart, laugh, wow, sad, fire), one row per user per emoji. Unlike a Comment, a Reaction is atomic: there's nothing to edit, only add or remove, and removing one is always a hard delete. A user can leave several different Reactions on the same Review but never the same emoji twice.
+_Avoid_: Like (this app's reaction set isn't a single binary like/unlike)
+
+**Moderation** (Phase 6):
+The authority to delete another user's Comment: held by the Review's own author (over Comments on their own Review only) and by Admin (instance-wide), on top of a Comment's own author always being able to delete it. Distinct from the catalog-editing/invite powers Admin and Manager already hold — this is the one place a Manager has no special authority over a Comment that isn't their own.
+_Avoid_: Flagging, reporting (there's no report-then-review queue in v1, Moderation is a direct delete)
