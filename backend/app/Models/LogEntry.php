@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -65,5 +66,16 @@ class LogEntry extends Model
     public function participants(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'log_entry_participants');
+    }
+
+    /**
+     * Threaded Comments on this Log Entry's Review. Only meaningful when
+     * `review` is non-null — see GLOSSARY.md "Review" and "Comment".
+     *
+     * @return HasMany<Comment, $this>
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
     }
 }
