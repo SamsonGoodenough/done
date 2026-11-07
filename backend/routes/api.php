@@ -1,8 +1,12 @@
 <?php
 
+use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\FriendshipController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LogEntryController;
 use App\Http\Controllers\MediaItemController;
+use App\Http\Controllers\MemberController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserMediaController;
 use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
@@ -42,3 +46,22 @@ Route::patch('/user-media/{userMedia}', [UserMediaController::class, 'update'])-
 Route::delete('/user-media/{userMedia}', [UserMediaController::class, 'destroy'])->middleware('auth:sanctum');
 
 Route::post('/log-entries', [LogEntryController::class, 'store'])->middleware('auth:sanctum');
+
+// Friend requests apply equally regardless of role, no permission gate. See
+// docs/planning/06-roles-permissions.md and GLOSSARY.md "Friendship".
+Route::get('/friendships', [FriendshipController::class, 'index'])->middleware('auth:sanctum');
+Route::post('/friendships', [FriendshipController::class, 'store'])->middleware('auth:sanctum');
+Route::post('/friendships/{friendship}/accept', [FriendshipController::class, 'accept'])->middleware('auth:sanctum');
+Route::post('/friendships/{friendship}/decline', [FriendshipController::class, 'decline'])->middleware('auth:sanctum');
+Route::delete('/friendships/{friendship}', [FriendshipController::class, 'destroy'])->middleware('auth:sanctum');
+
+Route::patch('/profile/visibility', [ProfileController::class, 'updateVisibility'])->middleware('auth:sanctum');
+
+// Must stay registered after /members/search, or {user} would greedily
+// capture "search" as an id. Discoverability isn't gated by Profile
+// Visibility; only a member's shelf/diary/friend-list content is.
+Route::get('/members/search', [MemberController::class, 'search'])->middleware('auth:sanctum');
+Route::get('/members/{user}', [MemberController::class, 'show'])->middleware('auth:sanctum');
+
+Route::get('/activity/feed', [ActivityController::class, 'feed'])->middleware('auth:sanctum');
+Route::get('/activity/new-from-friends', [ActivityController::class, 'newFromFriends'])->middleware('auth:sanctum');

@@ -8,7 +8,9 @@ use App\Models\Invitation;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class InvitationTest extends TestCase
@@ -206,7 +208,7 @@ class InvitationTest extends TestCase
         // RoleDoesNotExist inside accept()'s transaction, and the User row
         // created just before it should roll back rather than leaving an
         // orphaned, roleless user with the email now permanently consumed.
-        \Spatie\Permission\Models\Role::where('name', UserRole::Manager->value)->delete();
+        Role::where('name', UserRole::Manager->value)->delete();
 
         $this->postJson("/api/invitations/{$rawToken}/accept", [
             'name' => 'New Person',
@@ -295,8 +297,8 @@ class InvitationTest extends TestCase
     private function createInvitation(
         ?User $invitedBy = null,
         UserRole $role = UserRole::Member,
-        ?\Illuminate\Support\Carbon $expiresAt = null,
-        ?\Illuminate\Support\Carbon $acceptedAt = null,
+        ?Carbon $expiresAt = null,
+        ?Carbon $acceptedAt = null,
     ): array {
         $rawToken = Invitation::generateRawToken();
 

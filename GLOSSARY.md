@@ -52,3 +52,29 @@ _Avoid_: "Season" as if it were its own table/model
 **Edition**:
 A specific published version of a book (its own ISBN, cover, page count). Books are cataloged at edition granularity, not at the "work" level (a work is the abstract book across all its editions) — two editions of the same book are two separate Media Items.
 _Avoid_: Work, title (for books specifically)
+
+**Friendship** (Phase 5):
+A relationship between two users, stored as one directional row (requester, addressee, status) that becomes mutual once accepted, checked by OR across both directions, never duplicated into a second row. If both users request each other before either responds, the second request auto-resolves the first to accepted rather than creating a conflicting row.
+_Avoid_: Connection, follow (there's no asymmetric following in this app)
+
+**Friend Request**:
+The pending state of a Friendship. Declining doesn't block a future request from either party: there's no cooldown and no block concept in v1.
+
+**Unfriending**:
+Removing an accepted Friendship (soft-deleted via `deleted_at`), after which either party can send a fresh Friend Request and start over.
+
+**Profile Visibility**:
+A per-user Public/Private setting (`users.profile_visibility`) that gates a private user's shelf, diary, reviews, and friend list from anyone who isn't an accepted friend. Existence, name, and avatar stay searchable regardless of this setting: visibility gates content, not discoverability.
+_Avoid_: Privacy setting, profile privacy
+
+**Activity Feed** (Phase 5):
+A user's reverse-chronological feed of their accepted friends' recent Log Entries, shown regardless of whether a given entry carries a rating or review (a bare "watched, no rating" entry is still activity worth seeing), with no rollup of bursts (e.g. a show logged episode-by-episode posts one feed item per entry). Falls back to the user's own recent Log Entries, same composition, when they have no friends yet.
+_Avoid_: Timeline, activity stream
+
+**New from Friends** (Phase 5):
+A homescreen section distinct from the Activity Feed: one entry per friend, their single most recent Log Entry where they're the logger (not merely a tagged participant, per Tag Friends), sorted by recency, with no staleness cutoff, so a friend shows with their latest entry even if it's months old. Needs its own query rather than being derived from the Activity Feed: cheaper than scanning full friend history just to compute one summary row per friend, and stays correct once the feed is eventually paginated (a quiet friend's entry wouldn't silently fall off a loaded page and disappear from the section).
+_Avoid_: Friends' Latest, recent activity widget
+
+**Tag Friends** (Phase 3, clarified Phase 5):
+Marking another user as a participant who shared the experience behind a Log Entry (`log_entry_participants`). Purely informational: it never changes who can see the entry, never surfaces the entry on the tagged user's own diary/profile, and never injects it into the tagged user's friends' Activity Feed; only the logger's own friends see it there.
+_Avoid_: Co-watcher (in code/schema contexts), follower
