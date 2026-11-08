@@ -4,9 +4,11 @@ namespace Tests\Feature;
 
 use App\Enums\MediaSource;
 use App\Enums\MediaType;
+use App\Models\Comment;
 use App\Models\Friendship;
 use App\Models\LogEntry;
 use App\Models\MediaItem;
+use App\Models\Reaction;
 use App\Models\User;
 use App\Models\UserMedia;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -120,6 +122,27 @@ class ActivityControllerTest extends TestCase
         // own either: true empty feed, not a fallback trigger since the
         // viewer genuinely has zero friends and zero entries.
         $this->assertCount(0, $response->json('data'));
+    }
+
+    /**
+     * See docs/adr/0006-comment-reaction-summaries-embedded-in-existing-endpoints.md.
+     */
+    public function test_feed_includes_comment_count_and_the_viewers_own_reaction_summary(): void
+    {
+        $viewer = User::factory()->create();
+        $friend = User::factory()->create();
+        $this->befriend($viewer, $friend);
+
+        $entry = $this->logEntry($friend, ['review' => 'Great episode']);
+        Comment::create(['log_entry_id' => $entry->id, 'user_id' => $viewer->id, 'body' => 'Agreed']);
+        Reaction::create(['log_entry_id' => $entry->id, 'user_id' => $viewer->id, 'emoji' => 'fire']);
+        Reaction::create(['log_entry_id' => $entry->id, 'user_id' => $friend->id, 'emoji' => 'fire']);
+
+        $response = $this->actingAs($viewer)->getJson('/api/activity/feed')->assertOk();
+
+        $response->assertJsonPath('data.0.comment_count', 1)
+            ->assertJsonPath('data.0.reaction_summary.count', 2)
+            ->assertJsonPath('data.0.reaction_summary.viewer_reactions', ['fire']);
     }
 
     public function test_new_from_friends_requires_authentication(): void
@@ -241,5 +264,24 @@ class ActivityControllerTest extends TestCase
         DB::disableQueryLog();
 
         $this->assertSame($queryCountForFive, $queryCountForTen);
+    }
+
+    /**
+     * See docs/adr/0006-comment-reaction-summaries-embedded-in-existing-endpoints.md.
+     */
+    public function test_new_from_friends_includes_comment_count_and_reaction_summary(): void
+    {
+        $viewer = User::factory()->create();
+        $friend = User::factory()->create();
+        $this->befriend($viewer, $friend);
+
+        $entry = $this->logEntry($friend, ['review' => 'Great episode']);
+        Comment::create(['log_entry_id' => $entry->id, 'user_id' => $friend->id, 'body' => 'Self-reply']);
+
+        $response = $this->actingAs($viewer)->getJson('/api/activity/new-from-friends')->assertOk();
+
+        $response->assertJsonPath('data.0.comment_count', 1)
+            ->assertJsonPath('data.0.reaction_summary.count', 0)
+            ->assertJsonPath('data.0.reaction_summary.viewer_reactions', []);
     }
 }

@@ -25,6 +25,12 @@ class LogEntryController extends Controller
             $request->taggedUserIds(),
         );
 
+        // A brand-new entry has no Comments/Reactions yet, but the response
+        // carries the same comment_count/reaction_summary shape as every
+        // other LogEntryResource for consistency with the list endpoints.
+        $logEntry->loadCount(['comments as comment_count', 'reactions as reaction_count']);
+        $logEntry->load(['reactions' => fn ($query) => $query->where('user_id', $request->user()->id)]);
+
         return LogEntryResource::make($logEntry)->response()->setStatusCode(201);
     }
 }
