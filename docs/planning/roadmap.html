@@ -289,8 +289,8 @@
     <p class="desc">Where "Done" actually stands right now, phase by phase — regenerated from <code>docs/planning/09-roadmap.md</code> by the <code>update-roadmap</code> skill. Treat the markdown file as the source of truth; this page is just a nicer way to read it.</p>
     <!-- META:START -->
     <div class="meta">
-      <span>Generated 2026-11-07</span>
-      <span>Branch <code>feature/phase6-comments-reactions</code></span>
+      <span>Generated 2026-11-08</span>
+      <span>Branch <code>feature/phase7-notifications</code></span>
       <span>Source <code>docs/planning/09-roadmap.md</code></span>
     </div>
     <!-- META:END -->
@@ -298,10 +298,10 @@
 
   <!-- STATS:START -->
   <div class="stats">
-    <div class="stat complete"><div class="num">6</div><div class="label">Phases complete</div></div>
+    <div class="stat complete"><div class="num">7</div><div class="label">Phases complete</div></div>
     <div class="stat progress"><div class="num">1</div><div class="label">Phases in progress</div></div>
-    <div class="stat"><div class="num">6</div><div class="label">Phases not started</div></div>
-    <div class="stat"><div class="num">24 / 49</div><div class="label">Tasks merged to main</div></div>
+    <div class="stat"><div class="num">5</div><div class="label">Phases not started</div></div>
+    <div class="stat"><div class="num">27 / 49</div><div class="label">Tasks merged to main</div></div>
   </div>
   <!-- STATS:END -->
 
@@ -312,8 +312,8 @@
     <a href="#phase-3" class="complete">P3</a>
     <a href="#phase-4" class="complete">P4</a>
     <a href="#phase-5" class="complete">P5</a>
-    <a href="#phase-6" class="progress">P6</a>
-    <a href="#phase-7">P7</a>
+    <a href="#phase-6" class="complete">P6</a>
+    <a href="#phase-7" class="progress">P7</a>
     <a href="#phase-8">P8</a>
     <a href="#phase-9">P9</a>
     <a href="#phase-10">P10</a>
@@ -424,30 +424,31 @@
     <p class="callout">A code review (high effort) before merge found and fixed two real issues: a genuine crossing-request race where two simultaneous opposite-direction requests could each read "no reverse row yet" and create two independent pending rows instead of one accepting the other (closed with a Postgres advisory lock scoped to the user pair, verified against real Postgres via tinker), and an N+1 in New from Friends (one query per friend), rewritten as a single query with a ROW_NUMBER() window function that also avoids a correctness bug in the naive MAX(created_at)-plus-self-join alternative (which can return two rows for a friend whose two entries share the exact same timestamp). 38 new backend tests, 148 total passing at merge, Pint clean.</p>
   </section>
 
-  <section class="phase is-progress" id="phase-6">
+  <section class="phase is-complete" id="phase-6">
     <div class="phase-head">
       <span class="phase-tag">PHASE 6</span>
       <h2 class="phase-title">Comments &amp; reactions</h2>
-      <span class="phase-frac">0 / 3</span>
+      <span class="phase-frac">3 / 3</span>
     </div>
-    <p class="phase-status progress">In Progress</p>
-    <p class="phase-note">Branch <code>feature/phase6-comments-reactions</code>, built and passing but not yet committed or merged — design locked in via a grilling + domain-modeling session (new GLOSSARY.md terms <strong>Review</strong>, <strong>Comment</strong>, <strong>Reaction</strong>, <strong>Moderation</strong>; see <a href="../adr/0006-comment-reaction-summaries-embedded-in-existing-endpoints.md">ADR 0006</a> for why the Activity Feed, New from Friends, and item-detail diary endpoints were also touched this phase, ahead of Phase 9's frontend, to embed comment/reaction summaries).</p>
+    <p class="phase-status complete">Complete</p>
+    <p class="phase-note">Merged to main via <a href="https://github.com/SamsonGoodenough/done/pull/5">PR #5</a> on 2026-11-08. Design locked in via a grilling + domain-modeling session (new GLOSSARY.md terms <strong>Review</strong>, <strong>Comment</strong>, <strong>Reaction</strong>, <strong>Moderation</strong>; see <a href="../adr/0006-comment-reaction-summaries-embedded-in-existing-endpoints.md">ADR 0006</a> for why the Activity Feed, New from Friends, and item-detail diary endpoints were also touched this phase, ahead of Phase 9's frontend, to embed comment/reaction summaries).</p>
     <ul class="checklist">
-      <li><span class="box"></span><span class="item-text"><span>comments migration (self-referencing parent_comment_id, soft delete) and threaded endpoints</span><span class="evidence">Built on the branch, not yet merged. GET/POST /api/log-entries/{logEntry}/comments, DELETE /api/comments/{comment}; a flat, created_at-ordered list (no pagination); a comment only accepts a parent_comment_id belonging to the same Log Entry (including a soft-deleted one, so replies to a deleted comment stay valid); deleting is always a soft-delete ("[deleted]" placeholder, replies preserved) and is available to the comment's own author, the review's author, or any Admin.</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>reactions migration (fixed emoji enum) and endpoints</span><span class="evidence">Built on the branch, not yet merged. Fixed six-value enum (thumbs_up, heart, laugh, wow, sad, fire); GET/POST /api/log-entries/{logEntry}/reactions (idempotent POST, full per-emoji/reactor breakdown + viewer's own reactions on this endpoint), DELETE /api/log-entries/{logEntry}/reactions/{emoji} (idempotent, removes only the caller's own).</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Spoiler-gating applied to comment visibility, matching the parent review</span><span class="evidence">No additional backend work needed: contains_spoilers already lives on the Log Entry and is already returned by LogEntryResource/ActivityEntryResource (Phase 4); the blur/reveal behavior itself is a frontend concern, tracked under Phase 9.</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>comments migration (self-referencing parent_comment_id, soft delete) and threaded endpoints</span><span class="evidence">Merged to main. GET/POST /api/log-entries/{logEntry}/comments, DELETE /api/comments/{comment}; a flat, created_at-ordered list with an id tiebreak (no pagination); a comment only accepts a parent_comment_id belonging to the same Log Entry (including a soft-deleted one, so replies to a deleted comment stay valid); deleting is always a soft-delete ("[deleted]" placeholder, replies preserved) and is available to the comment's own author, the review's author, or any Admin.</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>reactions migration (fixed emoji enum) and endpoints</span><span class="evidence">Merged to main. Fixed six-value enum (thumbs_up, heart, laugh, wow, sad, fire); GET/POST /api/log-entries/{logEntry}/reactions (idempotent POST, full per-emoji/reactor breakdown + viewer's own reactions on this endpoint), DELETE /api/log-entries/{logEntry}/reactions/{emoji} (idempotent, removes only the caller's own).</span></span></li>
+      <li class="done"><span class="box">✓</span><span class="item-text"><span>Spoiler-gating applied to comment visibility, matching the parent review</span><span class="evidence">Merged to main. No additional backend work needed: contains_spoilers already lives on the Log Entry and is already returned by LogEntryResource/ActivityEntryResource (Phase 4); the blur/reveal behavior itself is a frontend concern, tracked under Phase 9.</span></span></li>
     </ul>
     <p class="callout">Both Comments and Reactions are gated to a Log Entry that actually has a Review (422 otherwise) and to whoever can already view that Review per the Phase 5 friend/visibility policy, reused unmodified. The Activity Feed, New from Friends, and item-detail diary endpoints were extended with comment_count (including soft-deleted comments) and a condensed reaction_summary (total count + the viewer's own reaction(s)) on each Log Entry's serialization, to avoid a repeat of the N+1 pattern already caught in code review twice (Phases 2 and 5) — see ADR 0006.</p>
-    <p class="callout">A code review (high effort) before merge found and fixed two real issues: the visibility check for POST .../comments and POST .../reactions ran in the controller body, after the Form Request's own validation (including the review-must-be-non-null check) had already executed, so a stranger forbidden from viewing a private profile's entry got a 422 revealing the entry's existence and review state before ever being authorized to know either, fixed by moving the visibility check into StoreCommentRequest/StoreReactionRequest's own authorize(), which Laravel always runs before validation. And the comment thread listing was ordered by created_at alone, with no tiebreaker for two comments posted in the same instant, inconsistent with the explicit id tiebreak this same phase's ActivityController::newFromFriends uses for exactly this reason, fixed by adding the same tiebreaker. 34 new backend tests added, 185 total passing, Pint clean. Not yet committed, per this project's standing rule not to commit without an explicit ask.</p>
+    <p class="callout">A code review (high effort) before merge found and fixed two real issues: the visibility check for POST .../comments and POST .../reactions ran in the controller body, after the Form Request's own validation (including the review-must-be-non-null check) had already executed, so a stranger forbidden from viewing a private profile's entry got a 422 revealing the entry's existence and review state before ever being authorized to know either, fixed by moving the visibility check into StoreCommentRequest/StoreReactionRequest's own authorize(), which Laravel always runs before validation. And the comment thread listing was ordered by created_at alone, with no tiebreaker for two comments posted in the same instant, inconsistent with the explicit id tiebreak this same phase's ActivityController::newFromFriends uses for exactly this reason, fixed by adding the same tiebreaker. 34 new backend tests added, 185 total passing at merge, Pint clean.</p>
   </section>
 
-  <section class="phase" id="phase-7">
+  <section class="phase is-progress" id="phase-7">
     <div class="phase-head">
       <span class="phase-tag">PHASE 7</span>
       <h2 class="phase-title">Notifications</h2>
       <span class="phase-frac">0 / 3</span>
     </div>
-    <p class="phase-status">Not Started</p>
+    <p class="phase-status progress">In Progress</p>
+    <p class="phase-note">Branch <code>feature/phase7-notifications</code> created off main; no code written yet.</p>
     <ul class="checklist">
       <li><span class="box"></span><span class="item-text"><span>notifications migration and model</span></span></li>
       <li><span class="box"></span><span class="item-text"><span>Notification-creating side effects: tagging, friend request/accept, comments/replies, reactions</span></span></li>
