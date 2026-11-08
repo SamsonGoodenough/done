@@ -1,0 +1,7 @@
+# Notification side effects are wired via domain events and queued listeners, not inline controller calls
+
+**Status:** accepted
+
+Phase 7 needs six unrelated trigger points (tagging, friend request, friend accept, top-level comment, comment reply, reaction) to each produce a Notification row. The obvious path is a `NotificationService` called directly from each of the existing controllers/services, but that scatters notification knowledge across five-plus unrelated modules and makes every future trigger point responsible for remembering notifications exist at all. Instead, each trigger fires a domain event (`UserTagged`, `FriendRequestSent`, `FriendRequestAccepted`, `CommentPosted`, `ReactionAdded`), and one queued listener per event creates the Notification row, using the `database` queue connection and `queue-worker` service already running.
+
+**Consequences:** future notification-adjacent features (an email digest, push, Slack webhook) attach as additional listeners on the same events instead of touching the original trigger code again. This is the first use of Laravel events/listeners in the codebase; existing side effects (e.g. the Phase 6 comment/reaction count embedding, see [ADR 0006](0006-comment-reaction-summaries-embedded-in-existing-endpoints.md)) are deliberately left as direct calls, since those aren't fan-out-to-many-trigger-points problems the way notifications are.
