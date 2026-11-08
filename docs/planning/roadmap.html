@@ -448,12 +448,14 @@
       <span class="phase-frac">0 / 3</span>
     </div>
     <p class="phase-status progress">In Progress</p>
-    <p class="phase-note">Branch <code>feature/phase7-notifications</code> created off main; no code written yet.</p>
+    <p class="phase-note">Branch <code>feature/phase7-notifications</code> off main, all checklist work below done on the branch and passing (208 backend tests, Pint clean) but not yet merged, no PR opened yet. Design locked in via a grilling + domain-modeling session (new GLOSSARY.md term <strong>Notification</strong>; see <a href="../adr/0007-notifications-via-domain-events-and-queued-listeners.md">ADR 0007</a> for why the six trigger points fire domain events into queued listeners rather than calling a notification service directly).</p>
     <ul class="checklist">
-      <li><span class="box"></span><span class="item-text"><span>notifications migration and model</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Notification-creating side effects: tagging, friend request/accept, comments/replies, reactions</span></span></li>
-      <li><span class="box"></span><span class="item-text"><span>Unread count + mark-read endpoints</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>notifications migration and model</span><span class="evidence">Done on the branch, not yet merged. user_id, type (NotificationType backed enum: tagged, friend_request, friend_accepted, comment_on_review, comment_reply, reaction), data (JSON payload per type), read_at, full timestamps + soft delete.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>Notification-creating side effects: tagging, friend request/accept, comments/replies, reactions</span><span class="evidence">Done on the branch, not yet merged. Tagging (UserTagged, from LogEntryRecorder), friend request/accept (FriendRequestSent/FriendRequestAccepted, from FriendshipManager and FriendshipController::accept), comments/replies (CommentPosted, from CommentManager), reactions (ReactionAdded, from ReactionManager, only on an actual create). Each event has one ShouldQueueAfterCommit listener that creates the Notification row, always self-suppressed. A top-level comment notifies only the review's owner; a reply at any depth notifies only its immediate parent comment's author, never both for the same comment.</span></span></li>
+      <li><span class="box"></span><span class="item-text"><span>Unread count + mark-read endpoints</span><span class="evidence">Done on the branch, not yet merged. GET /api/notifications, GET /api/notifications/unread-count, PATCH /api/notifications/{notification}/read (idempotent, ownership-gated), PATCH /api/notifications/read-all. No user-facing "clear"/dismiss action in v1 — deleted_at is reserved for a future system-side retraction, not exercised yet since there's no existing way to undo any of the six trigger events.</span></span></li>
     </ul>
+    <p class="callout">Testing while building this phase found and fixed one real pre-existing bug: Comment::parent() didn't include soft-deleted comments, so a reply notification for a reply-to-a-deleted-comment (explicitly allowed by StoreCommentRequest) crashed on a null parent, fixed by adding withTrashed() to that relation.</p>
+    <p class="callout">A code review (high effort) before merge found and fixed three more real issues: CreateCommentNotification and CreateReactionNotification both dereferenced logEntry-&gt;userMedia-&gt;user_id without accounting for the Shelf Entry being soft-deleted independently of its Log Entry, a real production race since these are queued listeners that can run well after the triggering request, fixed with withTrashed() on that relation lookup in both listeners, with regression tests driving the listeners directly to simulate the delayed-queue timing a synchronous test run can't otherwise reproduce. NotificationController reused MemberResource for a notification's actor without ever setting the relationship_status attribute that resource expects the controller to compute, so every actor silently reported relationship_status: null; fixed by not reusing that resource for this narrower purpose. LogEntryRecorder reloaded the participants relation twice on every tagged log entry; fixed to reload once. 23 new backend tests added in total, 208 total passing, Pint clean.</p>
   </section>
 
   <section class="phase" id="phase-8">
@@ -529,7 +531,7 @@
       <li><span class="box"></span><span class="item-text"><span>Mobile UI polish pass (touch target sizing, real-device testing)</span></span></li>
       <li><span class="box"></span><span class="item-text"><span>Friend-match suggestions ("you and X have N reviews in common")</span></span></li>
     </ul>
-    <p class="callout">Other possible fast-follows (not committed): anime/manga as distinct types, podcasts/music, year-in-review stats, data export/import.</p>
+    <p class="callout">Other possible fast-follows (not committed): anime/manga as distinct types, podcasts/music, year-in-review stats, data export/import. Also from Phase 7's design session: a per-type notification preference toggle (e.g. muting reaction notifications specifically), if v1's "all six types always on" turns out to be noisy in practice.</p>
   </section>
 
   <!-- PHASES:END -->
