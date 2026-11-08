@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\FriendshipStatus;
+use App\Events\FriendRequestAccepted;
 use App\Http\Requests\StoreFriendshipRequest;
 use App\Http\Resources\FriendshipResource;
 use App\Models\Friendship;
@@ -51,6 +52,8 @@ class FriendshipController extends Controller
 
         $friendship->fill(['status' => FriendshipStatus::Accepted, 'responded_at' => now()]);
         $friendship->save();
+
+        FriendRequestAccepted::dispatch($friendship);
 
         return FriendshipResource::make($friendship->load(['requester', 'addressee']));
     }

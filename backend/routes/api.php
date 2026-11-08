@@ -7,6 +7,7 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LogEntryController;
 use App\Http\Controllers\MediaItemController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReactionController;
 use App\Http\Controllers\UserMediaController;
@@ -80,3 +81,9 @@ Route::get('/members/{user}', [MemberController::class, 'show'])->middleware('au
 
 Route::get('/activity/feed', [ActivityController::class, 'feed'])->middleware('auth:sanctum');
 Route::get('/activity/new-from-friends', [ActivityController::class, 'newFromFriends'])->middleware('auth:sanctum');
+
+// See GLOSSARY.md "Notification" and docs/adr/0007-notifications-via-domain-events-and-queued-listeners.md.
+Route::get('/notifications', [NotificationController::class, 'index'])->middleware('auth:sanctum');
+Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])->middleware('auth:sanctum');
+Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead'])->middleware('auth:sanctum');
+Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->middleware('auth:sanctum');

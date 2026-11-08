@@ -3,6 +3,8 @@
 namespace App\Services\Friends;
 
 use App\Enums\FriendshipStatus;
+use App\Events\FriendRequestAccepted;
+use App\Events\FriendRequestSent;
 use App\Models\Friendship;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -50,6 +52,8 @@ class FriendshipManager
             $reverse->fill(['status' => FriendshipStatus::Accepted, 'responded_at' => now()]);
             $reverse->save();
 
+            FriendRequestAccepted::dispatch($reverse);
+
             return new FriendshipResult($reverse, wasNew: false);
         }
 
@@ -76,6 +80,8 @@ class FriendshipManager
             $trashed->fill(['status' => FriendshipStatus::Pending, 'responded_at' => null]);
             $trashed->restore();
 
+            FriendRequestSent::dispatch($trashed);
+
             return new FriendshipResult($trashed, wasNew: true);
         }
 
@@ -91,13 +97,16 @@ class FriendshipManager
             }
 
             // Lost a create-create race to a concurrent request; the row
-            // that won is exactly what we'd have returned anyway.
+            // that won is exactly what we'd have returned anyway, and its
+            // own path already dispatched FriendRequestSent.
             $created = Friendship::where('requester_id', $requesterId)
                 ->where('addressee_id', $addresseeId)
                 ->firstOrFail();
 
             return new FriendshipResult($created, wasNew: false);
         }
+
+        FriendRequestSent::dispatch($created);
 
         return new FriendshipResult($created, wasNew: true);
     }
