@@ -94,3 +94,7 @@ _Avoid_: Like (this app's reaction set isn't a single binary like/unlike)
 **Moderation** (Phase 6):
 The authority to delete another user's Comment: held by the Review's own author (over Comments on their own Review only) and by Admin (instance-wide), on top of a Comment's own author always being able to delete it. Distinct from the catalog-editing/invite powers Admin and Manager already hold — this is the one place a Manager has no special authority over a Comment that isn't their own.
 _Avoid_: Flagging, reporting (there's no report-then-review queue in v1, Moderation is a direct delete)
+
+**Notification** (Phase 7):
+A personal, read/unread alert to one user that one of six events happened to them: being tagged, a friend request sent or accepted, a comment on their review, a reply to their comment, or a reaction to their review (`notifications`). Always self-suppressed — a user's own actions on their own content never notify themselves — and only ever soft-deleted by the system when the underlying event is undone (e.g. an untag), never by the user dismissing it; marking read is the only user-facing lifecycle action in v1.
+_Avoid_: Activity Feed (a shared, friends-wide stream of Log Entries; a Notification is a private, personal alert about something that happened to you specifically)

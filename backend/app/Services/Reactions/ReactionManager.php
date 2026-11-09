@@ -3,6 +3,7 @@
 namespace App\Services\Reactions;
 
 use App\Enums\ReactionEmoji;
+use App\Events\ReactionAdded;
 use App\Models\LogEntry;
 use App\Models\Reaction;
 use App\Models\User;
@@ -12,15 +13,22 @@ class ReactionManager
     /**
      * Idempotent: a repeat of the same emoji from the same user is a no-op,
      * not an error, since a Reaction is atomic (see GLOSSARY.md
-     * "Reaction").
+     * "Reaction"). Only dispatches ReactionAdded when it actually created a
+     * row — nothing new to notify about on a repeat.
      */
     public function react(User $user, LogEntry $logEntry, ReactionEmoji $emoji): Reaction
     {
-        return Reaction::firstOrCreate([
+        $reaction = Reaction::firstOrCreate([
             'log_entry_id' => $logEntry->id,
             'user_id' => $user->id,
             'emoji' => $emoji,
         ]);
+
+        if ($reaction->wasRecentlyCreated) {
+            ReactionAdded::dispatch($reaction);
+        }
+
+        return $reaction;
     }
 
     /**

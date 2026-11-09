@@ -35,11 +35,15 @@ class Comment extends Model
     }
 
     /**
+     * withTrashed(): a reply to a soft-deleted parent is explicitly allowed
+     * (see StoreCommentRequest), so this relation has to resolve a
+     * soft-deleted parent too, not just a live one.
+     *
      * @return BelongsTo<Comment, $this>
      */
     public function parent(): BelongsTo
     {
-        return $this->belongsTo(Comment::class, 'parent_comment_id');
+        return $this->belongsTo(Comment::class, 'parent_comment_id')->withTrashed();
     }
 
     /**

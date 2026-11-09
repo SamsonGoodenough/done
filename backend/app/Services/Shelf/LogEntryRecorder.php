@@ -3,6 +3,7 @@
 namespace App\Services\Shelf;
 
 use App\Enums\ShelfStatus;
+use App\Events\UserTagged;
 use App\Models\LogEntry;
 use App\Models\User;
 use App\Models\UserMedia;
@@ -58,6 +59,13 @@ class LogEntryRecorder
 
             if ($taggedUserIds !== []) {
                 $logEntry->participants()->attach(array_unique($taggedUserIds));
+                $logEntry->load('participants');
+
+                foreach ($logEntry->participants as $participant) {
+                    UserTagged::dispatch($logEntry, $participant, $user);
+                }
+
+                return $logEntry;
             }
 
             return $logEntry->load('participants');
