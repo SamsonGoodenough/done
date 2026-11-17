@@ -49,6 +49,9 @@ Route::patch('/user-media/{userMedia}', [UserMediaController::class, 'update'])-
 Route::delete('/user-media/{userMedia}', [UserMediaController::class, 'destroy'])->middleware('auth:sanctum');
 
 Route::post('/log-entries', [LogEntryController::class, 'store'])->middleware('auth:sanctum');
+Route::patch('/log-entries/{logEntry}', [LogEntryController::class, 'update'])->middleware('auth:sanctum');
+Route::post('/log-entries/{logEntry}/participants', [LogEntryController::class, 'addParticipant'])->middleware('auth:sanctum');
+Route::delete('/log-entries/{logEntry}/participants/{user}', [LogEntryController::class, 'removeParticipant'])->middleware('auth:sanctum');
 
 // Comments/Reactions attach to a Log Entry but only make sense when it has a
 // Review (enforced in the Form Request, not the route); visibility is

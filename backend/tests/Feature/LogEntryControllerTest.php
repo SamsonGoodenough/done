@@ -4,11 +4,14 @@ namespace Tests\Feature;
 
 use App\Enums\MediaSource;
 use App\Enums\MediaType;
+use App\Events\UserTagged;
 use App\Models\Episode;
+use App\Models\LogEntry;
 use App\Models\MediaItem;
 use App\Models\User;
 use App\Models\UserMedia;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
 class LogEntryControllerTest extends TestCase
@@ -35,12 +38,30 @@ class LogEntryControllerTest extends TestCase
         ]);
     }
 
+    private function logEntryFor(User $user, ?MediaItem $mediaItem = null): LogEntry
+    {
+        $userMedia = UserMedia::create([
+            'user_id' => $user->id,
+            'media_item_id' => ($mediaItem ?? $this->mediaItem())->id,
+            'status' => 'done',
+        ]);
+
+        return LogEntry::create([
+            'user_media_id' => $userMedia->id,
+            'logged_date' => '2026-01-01',
+            'rating' => 3.0,
+            'review' => 'Original review.',
+            'contains_spoilers' => false,
+            'is_rewatch' => false,
+        ]);
+    }
+
     public function test_store_requires_authentication(): void
     {
         $this->postJson('/api/log-entries', [])->assertUnauthorized();
     }
 
-    public function test_logging_with_no_prior_shelf_entry_creates_one_as_completed(): void
+    public function test_logging_with_no_prior_shelf_entry_creates_one_as_done(): void
     {
         $user = User::factory()->create();
         $mediaItem = $this->mediaItem();
@@ -55,7 +76,7 @@ class LogEntryControllerTest extends TestCase
         $this->assertDatabaseHas('user_media', [
             'user_id' => $user->id,
             'media_item_id' => $mediaItem->id,
-            'status' => 'completed',
+            'status' => 'done',
         ]);
         $this->assertDatabaseHas('log_entries', ['rating' => '4.5']);
     }
@@ -78,7 +99,7 @@ class LogEntryControllerTest extends TestCase
         $this->assertDatabaseHas('user_media', ['id' => $userMedia->id, 'status' => 'dropped']);
     }
 
-    public function test_logging_restores_a_previously_removed_shelf_entry_as_completed(): void
+    public function test_logging_restores_a_previously_removed_shelf_entry_as_done(): void
     {
         $user = User::factory()->create();
         $mediaItem = $this->mediaItem();
@@ -95,7 +116,7 @@ class LogEntryControllerTest extends TestCase
         ])->assertCreated();
 
         $this->assertDatabaseCount('user_media', 1);
-        $this->assertDatabaseHas('user_media', ['id' => $userMedia->id, 'status' => 'completed', 'deleted_at' => null]);
+        $this->assertDatabaseHas('user_media', ['id' => $userMedia->id, 'status' => 'done', 'deleted_at' => null]);
     }
 
     public function test_second_log_entry_for_the_same_item_is_flagged_as_a_rewatch(): void
@@ -326,5 +347,200 @@ class LogEntryControllerTest extends TestCase
             'media_item_id' => $show->id,
             'logged_date' => '2026-02-01',
         ])->assertCreated()->assertJsonPath('data.is_rewatch', false);
+    }
+
+    public function test_update_requires_authentication(): void
+    {
+        $logEntry = $this->logEntryFor(User::factory()->create());
+
+        $this->patchJson("/api/log-entries/{$logEntry->id}", ['rating' => 4.0])->assertUnauthorized();
+    }
+
+    public function test_a_user_cannot_update_another_users_log_entry(): void
+    {
+        $owner = User::factory()->create();
+        $stranger = User::factory()->create();
+        $logEntry = $this->logEntryFor($owner);
+
+        $this->actingAs($stranger)->patchJson("/api/log-entries/{$logEntry->id}", ['rating' => 4.0])
+            ->assertForbidden();
+    }
+
+    public function test_update_changes_rating_review_date_and_spoiler_flag(): void
+    {
+        $user = User::factory()->create();
+        $logEntry = $this->logEntryFor($user);
+
+        $response = $this->actingAs($user)->patchJson("/api/log-entries/{$logEntry->id}", [
+            'rating' => 4.5,
+            'review' => 'Updated review.',
+            'logged_date' => '2026-01-15',
+            'contains_spoilers' => true,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('data.rating', 4.5)
+            ->assertJsonPath('data.review', 'Updated review.')
+            ->assertJsonPath('data.contains_spoilers', true);
+        $this->assertDatabaseHas('log_entries', [
+            'id' => $logEntry->id,
+            'rating' => '4.5',
+            'review' => 'Updated review.',
+            'logged_date' => '2026-01-15 00:00:00',
+            'contains_spoilers' => true,
+        ]);
+    }
+
+    public function test_update_leaves_unspecified_fields_untouched(): void
+    {
+        $user = User::factory()->create();
+        $logEntry = $this->logEntryFor($user);
+
+        $this->actingAs($user)->patchJson("/api/log-entries/{$logEntry->id}", ['rating' => 1.0])->assertOk();
+
+        $this->assertDatabaseHas('log_entries', [
+            'id' => $logEntry->id,
+            'rating' => '1.0',
+            'review' => 'Original review.',
+        ]);
+    }
+
+    public function test_update_is_favourite_writes_through_to_the_shelf_entry(): void
+    {
+        $user = User::factory()->create();
+        $logEntry = $this->logEntryFor($user);
+
+        $this->actingAs($user)->patchJson("/api/log-entries/{$logEntry->id}", ['is_favourite' => true])->assertOk();
+
+        $this->assertDatabaseHas('user_media', [
+            'id' => $logEntry->user_media_id,
+            'is_favourite' => true,
+        ]);
+    }
+
+    public function test_update_rating_must_still_be_in_half_star_steps(): void
+    {
+        $user = User::factory()->create();
+        $logEntry = $this->logEntryFor($user);
+
+        $this->actingAs($user)->patchJson("/api/log-entries/{$logEntry->id}", ['rating' => 3.3])
+            ->assertUnprocessable()->assertJsonValidationErrors('rating');
+    }
+
+    public function test_update_logged_date_cannot_be_in_the_future(): void
+    {
+        $user = User::factory()->create();
+        $logEntry = $this->logEntryFor($user);
+
+        $this->actingAs($user)->patchJson("/api/log-entries/{$logEntry->id}", [
+            'logged_date' => now()->addDay()->toDateString(),
+        ])->assertUnprocessable()->assertJsonValidationErrors('logged_date');
+    }
+
+    public function test_add_participant_requires_authentication(): void
+    {
+        $logEntry = $this->logEntryFor(User::factory()->create());
+        $friend = User::factory()->create();
+
+        $this->postJson("/api/log-entries/{$logEntry->id}/participants", ['user_id' => $friend->id])
+            ->assertUnauthorized();
+    }
+
+    public function test_a_user_cannot_tag_participants_onto_another_users_log_entry(): void
+    {
+        $owner = User::factory()->create();
+        $stranger = User::factory()->create();
+        $friend = User::factory()->create();
+        $logEntry = $this->logEntryFor($owner);
+
+        $this->actingAs($stranger)->postJson("/api/log-entries/{$logEntry->id}/participants", ['user_id' => $friend->id])
+            ->assertForbidden();
+    }
+
+    public function test_add_participant_attaches_and_dispatches_user_tagged(): void
+    {
+        Event::fake([UserTagged::class]);
+
+        $user = User::factory()->create();
+        $friend = User::factory()->create();
+        $logEntry = $this->logEntryFor($user);
+
+        $this->actingAs($user)->postJson("/api/log-entries/{$logEntry->id}/participants", ['user_id' => $friend->id])
+            ->assertOk()
+            ->assertJsonPath('data.tagged_user_ids', [$friend->id]);
+
+        $this->assertDatabaseHas('log_entry_participants', ['log_entry_id' => $logEntry->id, 'user_id' => $friend->id]);
+        Event::assertDispatched(UserTagged::class, fn (UserTagged $event) => $event->taggedUser->is($friend));
+    }
+
+    public function test_tagging_an_already_tagged_participant_is_idempotent(): void
+    {
+        Event::fake([UserTagged::class]);
+
+        $user = User::factory()->create();
+        $friend = User::factory()->create();
+        $logEntry = $this->logEntryFor($user);
+        $logEntry->participants()->attach($friend->id);
+
+        $this->actingAs($user)->postJson("/api/log-entries/{$logEntry->id}/participants", ['user_id' => $friend->id])
+            ->assertOk();
+
+        $this->assertDatabaseCount('log_entry_participants', 1);
+        Event::assertNotDispatched(UserTagged::class);
+    }
+
+    public function test_add_participant_user_id_must_exist(): void
+    {
+        $user = User::factory()->create();
+        $logEntry = $this->logEntryFor($user);
+
+        $this->actingAs($user)->postJson("/api/log-entries/{$logEntry->id}/participants", ['user_id' => 999999])
+            ->assertUnprocessable()->assertJsonValidationErrors('user_id');
+    }
+
+    public function test_remove_participant_requires_authentication(): void
+    {
+        $owner = User::factory()->create();
+        $friend = User::factory()->create();
+        $logEntry = $this->logEntryFor($owner);
+        $logEntry->participants()->attach($friend->id);
+
+        $this->deleteJson("/api/log-entries/{$logEntry->id}/participants/{$friend->id}")->assertUnauthorized();
+    }
+
+    public function test_a_user_cannot_remove_participants_from_another_users_log_entry(): void
+    {
+        $owner = User::factory()->create();
+        $stranger = User::factory()->create();
+        $friend = User::factory()->create();
+        $logEntry = $this->logEntryFor($owner);
+        $logEntry->participants()->attach($friend->id);
+
+        $this->actingAs($stranger)->deleteJson("/api/log-entries/{$logEntry->id}/participants/{$friend->id}")
+            ->assertForbidden();
+    }
+
+    public function test_remove_participant_detaches(): void
+    {
+        $user = User::factory()->create();
+        $friend = User::factory()->create();
+        $logEntry = $this->logEntryFor($user);
+        $logEntry->participants()->attach($friend->id);
+
+        $this->actingAs($user)->deleteJson("/api/log-entries/{$logEntry->id}/participants/{$friend->id}")
+            ->assertOk()
+            ->assertJsonPath('data.tagged_user_ids', []);
+
+        $this->assertDatabaseMissing('log_entry_participants', ['log_entry_id' => $logEntry->id, 'user_id' => $friend->id]);
+    }
+
+    public function test_removing_an_untagged_participant_is_a_no_op_success(): void
+    {
+        $user = User::factory()->create();
+        $friend = User::factory()->create();
+        $logEntry = $this->logEntryFor($user);
+
+        $this->actingAs($user)->deleteJson("/api/log-entries/{$logEntry->id}/participants/{$friend->id}")
+            ->assertOk();
     }
 }

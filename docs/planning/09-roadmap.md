@@ -47,7 +47,7 @@ A full code review (high effort) before merge found and fixed 9 real issues: `me
 *Merged to `main` via [PR #2](https://github.com/SamsonGoodenough/done/pull/2) on 2026-11-06, the same PR as Phase 2 (landed on one branch rather than split out). Design locked in via a second grilling session; one real cross-document contradiction surfaced and got resolved — see [ADR 0003](../adr/0003-shelf-status-and-logging-are-decoupled.md).*
 
 - [x] `user_media`, `log_entries`, and `log_entry_participants` migrations and models — merged to `main`; `user_media` gets the same soft-delete + restore-on-dedup pattern as `media_items`; `log_entries` deliberately excludes `episode_id`/`season_number` (deferred to Phase 4, since the `episodes` table it would validate against doesn't exist yet); `log_entry_participants` is a plain pivot, no model class
-- [x] Add to shelf (with status), change status, log a completion (with date/rating/review/spoiler/favourite/rewatch/tagged members) — merged to `main`; `ShelfEntryManager`/`LogEntryRecorder` services back `POST/GET/PATCH/DELETE /api/user-media` and `POST /api/log-entries` — one transaction finds-or-creates the shelf entry, auto-sets status to Completed only on creation/restoration (never touching an existing entry's status), computes `is_rewatch` with a manual-override escape hatch, writes `is_favourite` through from the log form, attaches tagged participants (self-tagging allowed)
+- [x] Add to shelf (with status), change status, log a completion (with date/rating/review/spoiler/favourite/rewatch/tagged members) — merged to `main`; `ShelfEntryManager`/`LogEntryRecorder` services back `POST/GET/PATCH/DELETE /api/user-media` and `POST /api/log-entries` — one transaction finds-or-creates the shelf entry, auto-sets status to Done only on creation/restoration (never touching an existing entry's status), computes `is_rewatch` with a manual-override escape hatch, writes `is_favourite` through from the log form, attaches tagged participants (self-tagging allowed)
 - [x] Shelf views by status; item detail page showing all log entries for that item — merged to `main`; `GET /api/user-media` (status/type/favourite filters), `GET /api/media-items/{id}/log-entries` scoped to the caller's own diary only (Phase 5 will extend this once friend visibility exists)
 
 See Phase 2's code-review note above — two of the nine fixes (the overwrite bug and one of the two races) were in this phase's `ShelfEntryManager`/`LogEntryRecorder`.
@@ -109,13 +109,14 @@ A code review (high effort) before merge found and fixed three more real issues:
 ## Phase 8 — Frontend: core flows
 
 **Status:** In Progress
-*Branch `feature/phase8-frontend-core-flows` created off `main`; no code written yet.*
+*Branch `feature/phase8-frontend-core-flows` created off `main`. Visual/interaction direction locked in via a full mockup pass (`docs/planning/mockups/phase8-screens.html`, self-contained HTML/CSS/JS) before writing any Vue code: the "Cinematic Cut" visual style is confirmed, and a full-screen stepped "wizard" pattern (one decision per screen, animated transitions, haptic feedback via the `web-haptics` library confirmed working on real hardware) is locked in as the pattern for every multi-field flow in the app going forward — including contextual quick-log entry points (a "+" on any detail view, e.g. an episode's own page, launches the wizard already scoped to what you were looking at). No Vue scaffold written yet.*
 
 - [ ] Vue 3 + Vuetify + Vite scaffold, mobile-first layout (bottom nav: Shelf, Search/Add, Activity, Profile; notifications bell in the top app bar) — the scaffold and libraries (Vuetify, Router, Pinia, vite-plugin-pwa) are already installed as part of Phase 1's Docker environment task, but the mobile-first bottom-nav layout, custom theme, and bespoke components haven't been built
 - [ ] Auth screens (login, accept-invite)
 - [ ] Search & add flow, shelf views, log-entry creation/edit with half-star rating control
 - [ ] Tag Friends control on the log-entry form (avatar row + add-friend picker, label adapts per media type)
 - [ ] Item detail page with diary history across whole-show, season, and episode entries (TV)
+- [ ] Backend support for editing an existing log entry, needed ahead of the Vue edit UI — `PATCH /api/log-entries/{id}` (date/rating/review/spoiler/rewatch, plus favourite writing through to the Shelf Entry) and `POST`/`DELETE /api/log-entries/{id}/participants` for tagging/untagging a member after the fact, both ownership-gated via a new `LogEntryPolicy` — merged to this branch with tests (224 backend tests passing, Pint clean), not yet to `main`
 
 ## Phase 9 — Frontend: social
 
