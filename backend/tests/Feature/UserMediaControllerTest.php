@@ -47,14 +47,14 @@ class UserMediaControllerTest extends TestCase
         ]);
     }
 
-    public function test_store_rejects_completed_status(): void
+    public function test_store_rejects_done_status(): void
     {
         $user = User::factory()->create();
         $mediaItem = $this->mediaItem();
 
         $this->actingAs($user)->postJson('/api/user-media', [
             'media_item_id' => $mediaItem->id,
-            'status' => 'completed',
+            'status' => 'done',
         ])->assertUnprocessable()->assertJsonValidationErrors('status');
     }
 
@@ -89,7 +89,7 @@ class UserMediaControllerTest extends TestCase
         $userMedia = UserMedia::create([
             'user_id' => $user->id,
             'media_item_id' => $mediaItem->id,
-            'status' => 'completed',
+            'status' => 'done',
             'is_favourite' => true,
         ]);
 
@@ -101,7 +101,7 @@ class UserMediaControllerTest extends TestCase
         $response->assertOk()->assertJsonPath('data.id', $userMedia->id);
         $this->assertDatabaseHas('user_media', [
             'id' => $userMedia->id,
-            'status' => 'completed',
+            'status' => 'done',
             'is_favourite' => true,
         ]);
     }
@@ -120,7 +120,7 @@ class UserMediaControllerTest extends TestCase
         ])->assertOk()->assertJsonPath('data.status', 'dropped');
     }
 
-    public function test_update_rejects_completed_status(): void
+    public function test_update_rejects_done_status(): void
     {
         $user = User::factory()->create();
         $userMedia = UserMedia::create([
@@ -130,7 +130,7 @@ class UserMediaControllerTest extends TestCase
         ]);
 
         $this->actingAs($user)->patchJson("/api/user-media/{$userMedia->id}", [
-            'status' => 'completed',
+            'status' => 'done',
         ])->assertUnprocessable();
     }
 

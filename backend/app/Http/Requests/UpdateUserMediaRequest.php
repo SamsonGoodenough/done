@@ -8,8 +8,8 @@ use Illuminate\Validation\Rule;
 
 /**
  * Partial update of a Shelf Entry — status and/or favourite, either
- * optional. No ordering constraint between the non-Completed statuses (see
- * docs/planning/03-features.md: "doesn't force that order"); Completed is
+ * optional. No ordering constraint between the non-Done statuses (see
+ * docs/planning/03-features.md: "doesn't force that order"); Done is
  * excluded for the same reason as StoreUserMediaRequest.
  */
 class UpdateUserMediaRequest extends FormRequest

@@ -21,11 +21,11 @@ Every item on a user's shelf has a status, independent of any diary entries:
 
 - **Planned** — want to watch/play/read
 - **In progress** — currently watching/playing/reading
-- **Completed** — finished at least once
+- **Done** — finished at least once
 - **Dropped** — started, not finishing
 - **On hold** — paused partway through
 
-Status is set/changed manually by the user (moving something from Planned → In progress → Completed is a normal flow, but the app doesn't force that order — e.g. logging a completed movie you saw last week creates the shelf entry as Completed directly).
+Status is set/changed manually by the user (moving something from Planned → In progress → Done is a normal flow, but the app doesn't force that order — e.g. logging a completed movie you saw last week creates the shelf entry as Done directly).
 
 ## Episode & season logging (TV Shows)
 
@@ -33,7 +33,7 @@ TV shows can be logged at three levels of granularity, not just whole-show:
 
 - Season/episode data (numbers, titles, air dates) is pulled from TMDB when a show is added to the catalog and stored locally (see [04-data-model.md](04-data-model.md) `episodes` table) — this is what populates the season/episode picker when creating a log entry.
 - A log entry can target the **whole show**, a **single season**, or a **single episode** — same fields either way (date, rating, review, spoiler flag, favourite, Tag Friends, rewatch). Rating and review are optional at every level, so logging an episode with no rating is how a user notes "I watched this" without a separate progress-tracking system.
-- There's no whole-show completion checklist or "watched X of Y" progress bar in v1 — a show's page just shows its diary history (whole-show, season, and episode entries together, most recent first), and moving the shelf status to Completed stays a manual action independent of how many episodes or seasons have been individually logged.
+- There's no whole-show completion checklist or "watched X of Y" progress bar in v1 — a show's page just shows its diary history (whole-show, season, and episode entries together, most recent first), and moving the shelf status to Done stays a manual action independent of how many episodes or seasons have been individually logged.
 - Movies, games, and books don't get this sub-item logging — season/episode granularity is TV-specific.
 
 ## Diary-style logging
@@ -45,7 +45,7 @@ Every time a user finishes (or re-finishes) something, they create a **log entry
 - **Review** — free text, optional
 - **Contains spoilers** — boolean flag on the review. If set, the review body is hidden behind a "Show spoilers" tap/click in any UI where other users can see it; the user's own view always shows it in full.
 - **Favourite** — boolean. Marking favourite applies to the *item* (shows up in the user's favourites list) but is set from the log entry UI at the point of logging, and editable afterward from the item or the entry.
-- **Rewatch/replay/reread** — a log entry is automatically flagged as a rewatch if the user already has a prior *completed* log entry for that item; this can be overridden manually (e.g. importing history where the first watch wasn't logged).
+- **Rewatch/replay/reread** — a log entry is automatically flagged as a rewatch if the user already has a prior *done* log entry for that item; this can be overridden manually (e.g. importing history where the first watch wasn't logged).
 
 A single item can have many log entries per user over time (first watch, a rewatch two years later, etc.) — each with its own date, rating, and review. The item's page shows the full history; the user's overall "current" rating for display purposes is the most recent entry's rating.
 

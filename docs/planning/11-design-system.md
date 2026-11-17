@@ -30,7 +30,7 @@ A ticket-booklet reading of your library: a completed item is a torn stub you ke
 | `--paper` | `#F6F1E6` | Light surface — review/comment reading sections |
 | `--paper-ink` | `#1F2A44` | Primary text on paper |
 | `--paper-dim` | `#6B6152` | Secondary text **on paper only** — fails contrast on `--bg`, use `--ink-dim` there instead |
-| `--primary` | `#B23A2E` | Oxblood ink — Completed status, rating-stamp ring, heart reaction |
+| `--primary` | `#B23A2E` | Oxblood ink — Done status, rating-stamp ring, heart reaction |
 | `--accent` | `#B8892F` | Mustard gold — In Progress status, thumbs-up reaction, hero kicker text |
 | `--teal` | `#6E9491` | On Hold status, fire/flame reaction |
 
@@ -62,7 +62,7 @@ All implemented as plain CSS/SVG, no images. See [`mockups/design-tokens.css`](m
 - **Postmark rating badge** *(css)* — `.stamp-postmark`: a circle, `background:var(--paper)`, `border:1.5px solid var(--primary)`, a dashed inner ring via `::before` inset border, `transform:rotate(-9deg)`, drop shadow. Holds the numeric rating (e.g. "4.5") + "RATED" in mono. This is the *display* treatment for a logged rating.
 - **Visa-stamp rewatch history** — smaller dashed-ring circles (no fill badge, just the dashed ring + mono month/day), shown in a row for each prior watch of a re-logged item.
 - **Ticket perforation** *(css)* — `.tear`: a dashed `border-top`, used as a section divider (rating → tag-friends → review → footer) inside the cream reading sections.
-- **Status tag** *(css)* — `.status-tag`: mono uppercase pill, `border:1px solid currentColor`, `rotate(-3deg)`. Color = `--primary` (Completed), `--accent` (In Progress), `--ink-dim`/`--paper-dim` (Planned/Dropped, dark/light bg respectively), `--teal` (On Hold).
+- **Status tag** *(css)* — `.status-tag`: mono uppercase pill, `border:1px solid currentColor`, `rotate(-3deg)`. Color = `--primary` (Done), `--accent` (In Progress), `--ink-dim`/`--paper-dim` (Planned/Dropped, dark/light bg respectively), `--teal` (On Hold).
 - **Spoiler mask** — inline `span` with `color:transparent; text-shadow:0 0 8px color-mix(in srgb, var(--paper-ink) 65%, transparent)` — blurs the masked text without hiding its shape. Paired with a "Contains Spoilers" status tag.
 - **Reaction pills** — small rounded-pill badges, inline SVG icon (stroke-based, never emoji) + mono count. Only 3 of the schema's 6 reaction types are illustrated so far (heart, thumbs-up, flame) — see Open items below.
 - **Avatar stack** *(carried over)* — Tag Friends / "Watched with" renders as overlapping circular avatars (negative margin overlap) ending in a dashed-outline "+" add slot.
@@ -75,7 +75,7 @@ All implemented as plain CSS/SVG, no images. See [`mockups/design-tokens.css`](m
 All three screens exist as both a mobile artboard (390×844) and a desktop artboard (1440×900). See [`mockups/screens/`](mockups/screens) for the exports.
 
 ### Shelf
-Poster grid (2-col mobile, 4-col desktop) of the signed-in user's `UserMedia` rows. Each card: gradient/grain "poster" placeholder, a type tag (Film/TV/Game/Book), a postmark rating badge when `LogEntry.rating` exists, a rotated status tag (`UserMedia.status`), title + type/year meta below. Filter chips across the top match the status enum exactly (All / Planned / In Progress / Completed / On Hold / Dropped). Mobile: bottom tab bar (Shelf/Search/Add/Activity/Profile — see Navigation below). Desktop: left sidebar nav instead.
+Poster grid (2-col mobile, 4-col desktop) of the signed-in user's `UserMedia` rows. Each card: gradient/grain "poster" placeholder, a type tag (Film/TV/Game/Book), a postmark rating badge when `LogEntry.rating` exists, a rotated status tag (`UserMedia.status`), title + type/year meta below. Filter chips across the top match the status enum exactly (All / Planned / In Progress / Done / On Hold / Dropped). Mobile: bottom tab bar (Shelf/Search/Add/Activity/Profile — see Navigation below). Desktop: left sidebar nav instead.
 
 ### Detail
 One `LogEntry` in full: big hero poster art with gradient scrim + overlapping postmark rating badge, title, status + logged date, "Watched with" tagged friends (`LogEntryParticipant`), rewatch visa-stamps (prior `LogEntry` rows for the same target) when `is_rewatch`, the review text with spoiler mask (`contains_spoilers`), reaction pills (3 of 6 types shown), and a couple of `Comment` previews with a "view all N" link. Mobile stacks hero-over-body; desktop splits into a sticky poster column + scrolling content column.

@@ -325,10 +325,10 @@ class MediaItemControllerTest extends TestCase
             'title' => 'The Matrix',
         ]);
 
-        $mine = UserMedia::create(['user_id' => $user->id, 'media_item_id' => $mediaItem->id, 'status' => 'completed']);
+        $mine = UserMedia::create(['user_id' => $user->id, 'media_item_id' => $mediaItem->id, 'status' => 'done']);
         LogEntry::create(['user_media_id' => $mine->id, 'logged_date' => '2026-01-01']);
 
-        $theirs = UserMedia::create(['user_id' => $other->id, 'media_item_id' => $mediaItem->id, 'status' => 'completed']);
+        $theirs = UserMedia::create(['user_id' => $other->id, 'media_item_id' => $mediaItem->id, 'status' => 'done']);
         LogEntry::create(['user_media_id' => $theirs->id, 'logged_date' => '2026-01-01']);
 
         $response = $this->actingAs($user)
@@ -355,7 +355,7 @@ class MediaItemControllerTest extends TestCase
             'title' => 'The Matrix',
         ]);
 
-        $userMedia = UserMedia::create(['user_id' => $user->id, 'media_item_id' => $mediaItem->id, 'status' => 'completed']);
+        $userMedia = UserMedia::create(['user_id' => $user->id, 'media_item_id' => $mediaItem->id, 'status' => 'done']);
         $entry = LogEntry::create(['user_media_id' => $userMedia->id, 'logged_date' => '2026-01-01', 'review' => 'Loved it']);
 
         $deletedComment = Comment::create(['log_entry_id' => $entry->id, 'user_id' => $other->id, 'body' => 'Nice!']);
