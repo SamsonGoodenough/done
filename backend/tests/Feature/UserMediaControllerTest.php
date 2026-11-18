@@ -120,7 +120,7 @@ class UserMediaControllerTest extends TestCase
         ])->assertOk()->assertJsonPath('data.status', 'dropped');
     }
 
-    public function test_update_rejects_done_status(): void
+    public function test_update_rejects_done_status_when_no_log_entries_exist(): void
     {
         $user = User::factory()->create();
         $userMedia = UserMedia::create([
@@ -131,7 +131,24 @@ class UserMediaControllerTest extends TestCase
 
         $this->actingAs($user)->patchJson("/api/user-media/{$userMedia->id}", [
             'status' => 'done',
-        ])->assertUnprocessable();
+        ])->assertUnprocessable()->assertJsonValidationErrors('status');
+    }
+
+    public function test_update_allows_done_status_once_a_log_entry_exists(): void
+    {
+        $user = User::factory()->create();
+        $userMedia = UserMedia::create([
+            'user_id' => $user->id,
+            'media_item_id' => $this->mediaItem()->id,
+            'status' => 'planned',
+        ]);
+        $userMedia->logEntries()->create(['logged_date' => '2026-01-01', 'rating' => 4.0]);
+
+        $this->actingAs($user)->patchJson("/api/user-media/{$userMedia->id}", [
+            'status' => 'done',
+        ])->assertOk()->assertJsonPath('data.status', 'done');
+
+        $this->assertDatabaseHas('user_media', ['id' => $userMedia->id, 'status' => 'done']);
     }
 
     public function test_update_toggles_favourite_independently_of_status(): void
@@ -214,5 +231,33 @@ class UserMediaControllerTest extends TestCase
 
         $byFavourite = $this->actingAs($user)->getJson('/api/user-media?favourite=1')->assertOk();
         $this->assertCount(1, $byFavourite->json('data'));
+    }
+
+    public function test_index_includes_the_latest_rating_from_log_entries(): void
+    {
+        $user = User::factory()->create();
+        $userMedia = UserMedia::create([
+            'user_id' => $user->id,
+            'media_item_id' => $this->mediaItem()->id,
+            'status' => 'done',
+        ]);
+
+        // Older rated entry, newer rated entry, and an unrated one newer than
+        // both: the stamp shows the newest entry that actually has a rating.
+        $userMedia->logEntries()->create(['logged_date' => '2026-01-01', 'rating' => 3.0]);
+        $userMedia->logEntries()->create(['logged_date' => '2026-02-01', 'rating' => 4.5]);
+        $userMedia->logEntries()->create(['logged_date' => '2026-03-01', 'rating' => null]);
+
+        $unrated = UserMedia::create([
+            'user_id' => $user->id,
+            'media_item_id' => $this->mediaItem()->id,
+            'status' => 'planned',
+        ]);
+
+        $response = $this->actingAs($user)->getJson('/api/user-media')->assertOk();
+
+        $byId = collect($response->json('data'))->keyBy('id');
+        $this->assertSame(4.5, $byId[$userMedia->id]['latest_rating']);
+        $this->assertNull($byId[$unrated->id]['latest_rating']);
     }
 }

@@ -18,6 +18,12 @@ class UserMediaResource extends JsonResource
             'media_item' => $this->whenLoaded('mediaItem', fn () => MediaItemResource::make($this->mediaItem)),
             'status' => $this->status,
             'is_favourite' => $this->is_favourite,
+            // Only present on queries that select it (the shelf index), and the
+            // rating of the newest rated Log Entry under this Shelf Entry.
+            'latest_rating' => $this->whenHas(
+                'latest_rating',
+                fn () => $this->latest_rating === null ? null : (float) $this->latest_rating,
+            ),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -7,6 +7,7 @@ use App\Enums\ShelfStatus;
 use App\Http\Requests\StoreUserMediaRequest;
 use App\Http\Requests\UpdateUserMediaRequest;
 use App\Http\Resources\UserMediaResource;
+use App\Models\LogEntry;
 use App\Models\UserMedia;
 use App\Services\Shelf\ShelfEntryManager;
 use Illuminate\Http\JsonResponse;
@@ -27,7 +28,17 @@ class UserMediaController extends Controller
 
         $query = UserMedia::query()
             ->where('user_id', $request->user()->id)
-            ->with('mediaItem');
+            ->with('mediaItem')
+            // The shelf card wears the rating stamp of the newest rated log
+            // entry under it (see the Shelf screen in 11-design-system.md).
+            ->addSelect([
+                'latest_rating' => LogEntry::select('rating')
+                    ->whereColumn('user_media_id', 'user_media.id')
+                    ->whereNotNull('rating')
+                    ->orderByDesc('logged_date')
+                    ->orderByDesc('id')
+                    ->limit(1),
+            ]);
 
         if (array_key_exists('status', $validated)) {
             $query->where('status', $validated['status']);
