@@ -103,7 +103,7 @@ The "shelf" — one row per user per media item, tracking their current relation
 | id | PK |
 | user_id | FK → users.id |
 | media_item_id | FK → media_items.id |
-| status | enum: `planned`, `in_progress`, `completed`, `dropped`, `on_hold` |
+| status | enum: `planned`, `in_progress`, `done`, `dropped`, `on_hold` |
 | is_favourite | boolean, default false |
 | created_at / updated_at | |
 | deleted_at | nullable — removed from a user's shelf; `log_entries` underneath are preserved |
@@ -124,7 +124,7 @@ The diary. One row per watch/play/read event.
 | rating | decimal, nullable, 0.0–5.0 in 0.5 steps |
 | review | text, nullable |
 | contains_spoilers | boolean, default false |
-| is_rewatch | boolean — true if a prior `completed`-resulting log entry already exists for the same target (same `episode_id`, or same `season_number`, or the whole item when both are null) |
+| is_rewatch | boolean — true if a prior `done`-resulting log entry already exists for the same target (same `episode_id`, or same `season_number`, or the whole item when both are null) |
 | created_at / updated_at | |
 | deleted_at | nullable — deleting a log entry/review is soft, so its comments/reactions/tags aren't orphaned |
 
@@ -226,9 +226,9 @@ Backs the in-app bell/badge.
 
 This is the main structural decision in the schema, driven directly by the "diary-style logging" and "backlog" answers from planning:
 
-- `user_media` answers "where does this stand for this user *right now*" (planned/in progress/completed/dropped, favourite or not) — one row, cheap to query for shelf views.
+- `user_media` answers "where does this stand for this user *right now*" (planned/in progress/done/dropped, favourite or not) — one row, cheap to query for shelf views.
 - `log_entries` answers "what's the full history of me finishing this" — potentially many rows, each with its own date/rating/review, which is exactly what diary-style rewatch tracking requires.
-- Backlog items (`status = planned`) simply have zero `log_entries`. Moving to `completed` and creating the first `log_entries` row happen together in one action from the UI, but they're modeled separately so a `dropped` or `on_hold` item can still have log entries — e.g. dropping a TV show after loving season 1 is a real log entry with `season_number = 1`, its own rating and review, independent of the show's overall shelf status.
+- Backlog items (`status = planned`) simply have zero `log_entries`. Moving to `done` and creating the first `log_entries` row happen together in one action from the UI, but they're modeled separately so a `dropped` or `on_hold` item can still have log entries — e.g. dropping a TV show after loving season 1 is a real log entry with `season_number = 1`, its own rating and review, independent of the show's overall shelf status.
 
 ## Roles & permissions tables
 

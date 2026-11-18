@@ -28,7 +28,7 @@ The act of a user adding a cataloged Media Item to their personal shelf, creatin
 _Avoid_: "Adding an item" on its own — ambiguous with Cataloging
 
 **Shelf Entry** (Phase 3):
-A user's current relationship to one Media Item — status (planned/in progress/completed/dropped/on-hold) and favourite flag (`user_media`) — independent of their diary history. One per user per Media Item.
+A user's current relationship to one Media Item — status (planned/in progress/done/dropped/on-hold) and favourite flag (`user_media`) — independent of their diary history. One per user per Media Item.
 _Avoid_: user_media on its own outside schema contexts
 
 **Log Entry** (Phase 3):

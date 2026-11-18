@@ -11,9 +11,9 @@ use Illuminate\Validation\Rule;
 
 /**
  * Logging a completion — open to any authenticated user for their own
- * shelf. Create-only this phase, no edit/delete. See
- * docs/planning/04-data-model.md and
- * docs/adr/0003-shelf-status-and-logging-are-decoupled.md.
+ * shelf. See docs/planning/04-data-model.md and
+ * docs/adr/0003-shelf-status-and-logging-are-decoupled.md. For editing an
+ * existing entry afterward, see UpdateLogEntryRequest.
  */
 class StoreLogEntryRequest extends FormRequest
 {

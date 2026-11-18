@@ -11,8 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * A Log Entry: one dated record of finishing (or re-finishing) a Logging
- * Target. Create-only in Phase 3, no edit/delete yet; see
- * docs/planning/09-roadmap.md and GLOSSARY.md.
+ * Target. See docs/planning/09-roadmap.md and GLOSSARY.md.
  */
 #[Fillable(['user_media_id', 'episode_id', 'season_number', 'logged_date', 'rating', 'review', 'contains_spoilers', 'is_rewatch'])]
 class LogEntry extends Model
@@ -38,6 +37,17 @@ class LogEntry extends Model
     public function userMedia(): BelongsTo
     {
         return $this->belongsTo(UserMedia::class);
+    }
+
+    /**
+     * The member who logged this entry. Removing an item from the shelf
+     * soft-deletes its UserMedia but leaves the entry behind, so the
+     * relation can resolve to null; such an entry is gone as far as every
+     * endpoint is concerned.
+     */
+    public function ownerOrFail(): User
+    {
+        return $this->userMedia?->user ?? abort(404);
     }
 
     /**

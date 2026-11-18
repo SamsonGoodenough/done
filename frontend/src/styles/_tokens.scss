@@ -1,0 +1,50 @@
+// Globally injected into every <style lang="scss"> block via Vite's
+// css.preprocessorOptions.scss.additionalData, so it must therefore emit ZERO css
+// of its own: aliases and mixins only. Values resolve at runtime to the
+// custom properties Vuetify emits from src/theme/palette.js (the single
+// source of truth); nothing here may hold a color literal.
+//
+// Convention: Vuetify-model colors are used as rgb(var(--v-theme-primary));
+// everything else goes through these aliases.
+
+$font-serif: var(--v-font-serif);
+$font-sans: var(--v-font-sans);
+$font-mono: var(--v-font-mono);
+$hair-dark: var(--v-hair-dark);
+$paper-hair: var(--v-paper-hair);
+
+// Film-grain overlay: apply to an absolutely-positioned child of a
+// position:relative surface (see .grain in global.scss).
+@mixin grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.45;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.35 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+// Ticket-perforation divider. Pass $paper-hair on paper surfaces,
+// $hair-dark on dark surfaces.
+@mixin tear($color: $paper-hair) {
+  border: none;
+  border-top: 1.5px dashed $color;
+  margin: 1.75rem 0;
+}
+
+// Mono ticket-printer label (kickers, field labels, meta rows).
+@mixin mono-label($size: 0.64rem, $tracking: 0.1em) {
+  font-family: $font-mono;
+  font-size: $size;
+  letter-spacing: $tracking;
+  text-transform: uppercase;
+}
+
+// Frosted glass surface over imagery (chrome buttons, meta chips, panels).
+// Built from the theme triplets so no color literal leaks in here.
+@mixin glass($bg-alpha: 0.45, $blur: 10px) {
+  background: rgba(var(--v-theme-surface), $bg-alpha);
+  backdrop-filter: blur($blur) saturate(160%);
+  -webkit-backdrop-filter: blur($blur) saturate(160%);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.16);
+}

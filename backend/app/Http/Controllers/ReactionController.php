@@ -20,7 +20,7 @@ class ReactionController extends Controller
      */
     public function index(LogEntry $logEntry): ReactionSummaryResource
     {
-        $this->authorize('viewPrivateContent', $logEntry->userMedia->user);
+        $this->authorize('viewPrivateContent', $logEntry->ownerOrFail());
 
         $logEntry->load('reactions.user');
 
@@ -49,7 +49,7 @@ class ReactionController extends Controller
      */
     public function destroy(Request $request, LogEntry $logEntry, ReactionEmoji $emoji, ReactionManager $reactions): JsonResponse
     {
-        $this->authorize('viewPrivateContent', $logEntry->userMedia->user);
+        $this->authorize('viewPrivateContent', $logEntry->ownerOrFail());
 
         $reactions->unreact($request->user(), $logEntry, $emoji);
 

@@ -95,9 +95,9 @@ An invite-only, self-hosted tracker for movies, TV shows, games, and books for a
 | `08-architecture-deployment.md` | Docker Compose service layout, nginx, Sanctum auth, backups |
 | `09-roadmap.md` | The 12-phase build order, backend first, frontend from Phase 8. Per-phase status/checklist kept current by the `update-roadmap` skill; browsable at `roadmap.html`. |
 | `10-open-questions.md` | Open items and assumptions that still need confirming |
-| `11-design-system.md` | The chosen visual language ("Passport & Postmark") |
+| `11-design-system.md` | The chosen visual language ("Stub & Stamp, Cinematic Cut") |
 
-`docs/planning/mockups/passport-and-postmark.html` is the live visual reference. Open it directly in a browser (self-contained HTML/CSS/JS, includes working color pickers and a light/dark toggle). Treat it as the source of truth for visual details; `11-design-system.md` summarizes it in prose.
+`docs/planning/mockups/phase8-screens.html` is the live visual reference — a self-contained HTML/CSS/JS mockup of every Phase 8 screen in the current "Cinematic Cut" direction (near-black film-grain surfaces, large serif type, ink-stamp motifs), including the full-screen stepped "wizard" pattern used for every multi-field flow and the contextual quick-log entry points. Open it directly in a browser. Treat it as the source of truth for visual and interaction details; `11-design-system.md` summarizes it in prose. The earlier `passport-and-postmark.html` mockup is retired — don't treat it as current.
 
 ## Architecture, once code exists
 

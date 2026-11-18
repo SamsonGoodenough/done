@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * The core "log a completion" flow: finds-or-creates the Shelf Entry and
  * creates the Log Entry in one transaction. A Shelf Entry's status is only
- * ever auto-set to Completed when this action is what creates it; an
+ * ever auto-set to Done when this action is what creates it; an
  * existing Shelf Entry's status is never touched here. See
  * docs/adr/0003-shelf-status-and-logging-are-decoupled.md.
  */
@@ -73,6 +73,33 @@ class LogEntryRecorder
     }
 
     /**
+     * Content-only edit of an existing Log Entry. `is_favourite` doesn't
+     * actually live on this model (see LogEntry's class doc), so it's
+     * peeled off and written through to the Shelf Entry instead, same as
+     * record() does via findOrCreateShelfEntry(); whatever's left (if
+     * anything) is saved directly on the Log Entry itself. What the entry
+     * is *about* — user_media_id, episode_id, season_number — is never
+     * touched here.
+     *
+     * @param  array<string, mixed>  $changes
+     */
+    public function update(LogEntry $logEntry, array $changes): LogEntry
+    {
+        return DB::transaction(function () use ($logEntry, $changes) {
+            if (array_key_exists('is_favourite', $changes)) {
+                $logEntry->userMedia->update(['is_favourite' => $changes['is_favourite']]);
+                unset($changes['is_favourite']);
+            }
+
+            if ($changes !== []) {
+                $logEntry->update($changes);
+            }
+
+            return $logEntry->fresh(['participants']);
+        });
+    }
+
+    /**
      * A rewatch is scoped to the exact same Logging Target, never "does this
      * logically overlap with past entries." Finishing a whole show is a
      * different target from, and never a rewatch relative to, a season- or
@@ -98,13 +125,13 @@ class LogEntryRecorder
             ->first();
 
         // No active (or previously-removed) shelf entry at all: this log
-        // action is what creates it, so it starts Completed, same as a
+        // action is what creates it, so it starts Done, same as a
         // soft-deleted one being brought back by logging it again.
         if ($existing === null || $existing->trashed()) {
             $attributes = [
                 'user_id' => $userId,
                 'media_item_id' => $mediaItemId,
-                'status' => ShelfStatus::Completed,
+                'status' => ShelfStatus::Done,
                 'is_favourite' => $isFavourite ?? false,
             ];
 
@@ -136,7 +163,7 @@ class LogEntryRecorder
         // An active shelf entry already exists: its status is left
         // untouched regardless of what this log entry turns out to be
         // (e.g. logging season 1 of an already-Dropped show never flips it
-        // back to Completed) — only favourite can be updated here.
+        // back to Done) — only favourite can be updated here.
         if ($isFavourite !== null) {
             $existing->is_favourite = $isFavourite;
             $existing->save();

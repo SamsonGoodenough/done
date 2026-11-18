@@ -8,7 +8,7 @@ use Illuminate\Validation\Rule;
 
 /**
  * Adding to the shelf without logging — open to any authenticated user for
- * their own shelf. Completed is deliberately excluded: it's only reachable
+ * their own shelf. Done is deliberately excluded: it's only reachable
  * via actually logging something, see
  * docs/adr/0003-shelf-status-and-logging-are-decoupled.md.
  */

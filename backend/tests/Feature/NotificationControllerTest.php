@@ -38,7 +38,7 @@ class NotificationControllerTest extends TestCase
         $userMedia = UserMedia::create([
             'user_id' => $user->id,
             'media_item_id' => $this->mediaItem()->id,
-            'status' => 'completed',
+            'status' => 'done',
         ]);
 
         return LogEntry::create(array_merge([

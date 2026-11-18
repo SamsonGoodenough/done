@@ -1,0 +1,33 @@
+// Global base styles, imported once in main.js. Fonts load from index.html.
+
+html {
+  background: rgb(var(--v-theme-background));
+}
+
+body {
+  font-family: $font-sans;
+  -webkit-font-smoothing: antialiased;
+}
+
+// Film-grain overlay class: drop <div class="grain" /> as the child of any
+// position:relative dark hero/poster surface.
+.grain {
+  @include grain;
+}
+
+// Shared type utilities matching the mockup's recurring treatments.
+.kicker {
+  @include mono-label(0.64rem, 0.14em);
+  color: rgb(var(--v-theme-accent));
+}
+
+.mono-meta {
+  @include mono-label(0.65rem, 0.08em);
+  color: rgb(var(--v-theme-ink-dim));
+}
+
+.wordmark {
+  font-family: $font-serif;
+  font-style: italic;
+  color: rgb(var(--v-theme-on-background));
+}

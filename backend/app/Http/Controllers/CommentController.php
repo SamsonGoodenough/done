@@ -25,7 +25,7 @@ class CommentController extends Controller
      */
     public function index(LogEntry $logEntry): AnonymousResourceCollection
     {
-        $this->authorize('viewPrivateContent', $logEntry->userMedia->user);
+        $this->authorize('viewPrivateContent', $logEntry->ownerOrFail());
 
         $comments = $logEntry->comments()
             ->withTrashed()

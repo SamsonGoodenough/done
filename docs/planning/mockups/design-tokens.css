@@ -31,7 +31,7 @@
 
   /* Ink-stamp brand colors — carried over from the earlier Stub & Stamp
      exploration; used for status tags, postmark rating badges, reactions */
-  --primary: #B23A2E;  /* oxblood red — "Completed" status, rating stamp ring, heart reaction */
+  --primary: #B23A2E;  /* oxblood red — "Done" status, rating stamp ring, heart reaction */
   --accent: #B8892F;   /* mustard gold — "In Progress" status, thumbs-up reaction, hero kicker */
   --teal: #6E9491;     /* secondary accent — "On Hold" status, fire/flame reaction */
 }
