@@ -22,7 +22,7 @@ class StoreCommentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('viewPrivateContent', $this->route('logEntry')->userMedia->user);
+        return $this->user()->can('viewPrivateContent', $this->route('logEntry')->ownerOrFail());
     }
 
     /**

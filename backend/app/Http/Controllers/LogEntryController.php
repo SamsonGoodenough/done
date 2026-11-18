@@ -6,6 +6,7 @@ use App\Events\UserTagged;
 use App\Http\Requests\StoreLogEntryRequest;
 use App\Http\Requests\TagParticipantRequest;
 use App\Http\Requests\UpdateLogEntryRequest;
+use App\Http\Resources\ActivityEntryResource;
 use App\Http\Resources\LogEntryResource;
 use App\Models\LogEntry;
 use App\Models\User;
@@ -38,6 +39,25 @@ class LogEntryController extends Controller
         $logEntry->load(['reactions' => fn ($query) => $query->where('user_id', $request->user()->id)]);
 
         return LogEntryResource::make($logEntry)->response()->setStatusCode(201);
+    }
+
+    /**
+     * One Log Entry with its author and media item, for the review page.
+     * Gated by the author's Profile Visibility, same as Comments and
+     * Reactions on the entry.
+     */
+    public function show(Request $request, LogEntry $logEntry): ActivityEntryResource
+    {
+        $this->authorize('viewPrivateContent', $logEntry->ownerOrFail());
+
+        $logEntry->load(['userMedia.user', 'userMedia.mediaItem', 'participants']);
+        $logEntry->loadCount([
+            'comments as comment_count' => fn ($query) => $query->withTrashed(),
+            'reactions as reaction_count',
+        ]);
+        $logEntry->load(['reactions' => fn ($query) => $query->where('user_id', $request->user()->id)]);
+
+        return ActivityEntryResource::make($logEntry);
     }
 
     public function update(UpdateLogEntryRequest $request, LogEntry $logEntry, LogEntryRecorder $recorder): LogEntryResource

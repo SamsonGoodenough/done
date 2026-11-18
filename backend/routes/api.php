@@ -36,6 +36,7 @@ Route::post('/media-items/manual', [MediaItemController::class, 'storeManual'])-
 // Must stay registered after the /media-items/search literal route above,
 // or {mediaItem} would greedily capture "search" as an id.
 Route::get('/media-items/{mediaItem}', [MediaItemController::class, 'show'])->middleware('auth:sanctum');
+Route::get('/media-items/{mediaItem}/reviews', [MediaItemController::class, 'reviews'])->middleware('auth:sanctum');
 Route::get('/media-items/{mediaItem}/log-entries', [MediaItemController::class, 'logEntries'])->middleware('auth:sanctum');
 Route::get('/media-items/{mediaItem}/episodes', [MediaItemController::class, 'episodes'])->middleware('auth:sanctum');
 
@@ -49,6 +50,7 @@ Route::patch('/user-media/{userMedia}', [UserMediaController::class, 'update'])-
 Route::delete('/user-media/{userMedia}', [UserMediaController::class, 'destroy'])->middleware('auth:sanctum');
 
 Route::post('/log-entries', [LogEntryController::class, 'store'])->middleware('auth:sanctum');
+Route::get('/log-entries/{logEntry}', [LogEntryController::class, 'show'])->middleware('auth:sanctum');
 Route::patch('/log-entries/{logEntry}', [LogEntryController::class, 'update'])->middleware('auth:sanctum');
 Route::post('/log-entries/{logEntry}/participants', [LogEntryController::class, 'addParticipant'])->middleware('auth:sanctum');
 Route::delete('/log-entries/{logEntry}/participants/{user}', [LogEntryController::class, 'removeParticipant'])->middleware('auth:sanctum');

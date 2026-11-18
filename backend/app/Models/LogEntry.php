@@ -40,6 +40,17 @@ class LogEntry extends Model
     }
 
     /**
+     * The member who logged this entry. Removing an item from the shelf
+     * soft-deletes its UserMedia but leaves the entry behind, so the
+     * relation can resolve to null; such an entry is gone as far as every
+     * endpoint is concerned.
+     */
+    public function ownerOrFail(): User
+    {
+        return $this->userMedia?->user ?? abort(404);
+    }
+
+    /**
      * Set only when this entry's Logging Target is a single Episode. See
      * GLOSSARY.md "Logging Target".
      *
